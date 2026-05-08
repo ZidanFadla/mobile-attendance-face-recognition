@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        font-family: 'Inter', sans-serif;
+        @apply antialiased;
+    }
+}
+
+@layer components {
+    /* === Sidebar === */
+    .sidebar-link {
+        @apply flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
+    }
+    .sidebar-link-active {
+        @apply bg-emerald-600 text-white;
+    }
+    .sidebar-link:not(.sidebar-link-active) {
+        @apply text-gray-400 hover:text-white hover:bg-gray-800;
+    }
+
+    /* === Cards === */
+    .stat-card {
+        @apply bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300;
+    }
+    .table-container {
+        @apply bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden;
+    }
+
+    /* === Buttons === */
+    .btn-primary {
+        @apply px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md;
+    }
+    .btn-secondary {
+        @apply px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-all duration-200;
+    }
+
+    /* === Inputs === */
+    .input-field {
+        @apply w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 transition-all duration-200;
+    }
+    .input-field:focus {
+        @apply ring-2 ring-emerald-500 border-emerald-500 bg-white;
+    }
+
+    /* === Legacy (Breeze compat) === */
+    .spinner {
+        @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+    }
+}

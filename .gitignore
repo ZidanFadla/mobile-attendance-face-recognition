@@ -1,0 +1,68 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+auth.json
+*.pem
+*.key
+*.p12
+*.keystore
+*.jks
+key.properties
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.kiro/
+*.iml
+*.ipr
+*.iws
+
+# Logs and caches
+*.log
+*.cache
+.phpunit.result.cache
+.phpunit.cache/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.whl
+
+# Node / Laravel frontend
+**/node_modules/
+**/public/build/
+**/public/hot
+
+# PHP / Laravel
+**/vendor/
+**/storage/*.key
+**/storage/framework/cache/*
+**/storage/framework/sessions/*
+**/storage/framework/testing/*
+**/storage/framework/views/*
+**/storage/logs/*
+**/storage/pail
+**/public/storage
+**/database/database.sqlite
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+**/coverage/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/macos/Flutter/ephemeral/
