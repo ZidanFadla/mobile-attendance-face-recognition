@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
@@ -19,7 +20,9 @@ class ApiService {
     'Accept': 'application/json',
   };
 
-  static Future<Map<String, String>> _headers({bool authenticated = false}) async {
+  static Future<Map<String, String>> _headers({
+    bool authenticated = false,
+  }) async {
     if (!authenticated) return _baseHeaders;
 
     final token = await TokenStorage.getToken();
@@ -27,10 +30,7 @@ class ApiService {
       throw Exception('Sesi login tidak ditemukan. Silakan login ulang.');
     }
 
-    return {
-      ..._baseHeaders,
-      'Authorization': 'Bearer $token',
-    };
+    return {..._baseHeaders, 'Authorization': 'Bearer $token'};
   }
 
   // ─── Auth ───────────────────────────────────────────────────
@@ -81,6 +81,58 @@ class ApiService {
   }
 
   // ─── Face ────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String phone,
+  }) async {
+    final response = await http
+        .put(
+          Uri.parse('$_baseUrl/profile'),
+          headers: await _headers(authenticated: true),
+          body: jsonEncode({'name': name, 'phone': phone}),
+        )
+        .timeout(_timeout);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> uploadProfilePhoto(File photo) async {
+    final token = await TokenStorage.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Sesi login tidak ditemukan. Silakan login ulang.');
+    }
+
+    final request =
+        http.MultipartRequest('POST', Uri.parse('$_baseUrl/profile/photo'))
+          ..headers['Accept'] = 'application/json'
+          ..headers['Authorization'] = 'Bearer $token'
+          ..files.add(
+            await http.MultipartFile.fromPath('profile_photo', photo.path),
+          );
+
+    final streamedResponse = await request.send().timeout(_timeout);
+    final response = await http.Response.fromStream(streamedResponse);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    final response = await http
+        .put(
+          Uri.parse('$_baseUrl/profile/password'),
+          headers: await _headers(authenticated: true),
+          body: jsonEncode({
+            'current_password': currentPassword,
+            'password': password,
+            'password_confirmation': passwordConfirmation,
+          }),
+        )
+        .timeout(_timeout);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
 
   static Future<bool> checkFaceRegistration() async {
     final response = await http

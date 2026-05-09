@@ -21,6 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/face/check', [FaceRecognitionController::class, 'checkFace']);
     Route::post('/attendance', [AttendanceApiController::class, 'store']);
     Route::post('/face/register-multiple', [FaceRecognitionController::class, 'registerFaceMultiple']);
+    Route::put('/profile', [EmployeeAuthController::class, 'updateProfile']);
+    Route::post('/profile/photo', [EmployeeAuthController::class, 'uploadProfilePhoto']);
+    Route::put('/profile/password', [EmployeeAuthController::class, 'changePassword']);
 
     // Messages (polling)
     Route::get('/messages', [MessageApiController::class, 'index']);

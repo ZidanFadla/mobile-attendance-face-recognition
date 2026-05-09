@@ -52,6 +52,7 @@ class _LoginPageState extends State<LoginPage> {
               builder: (_) => HomePage(
                 name: employee['name'],
                 phoneNumber: employee['phone'],
+                profilePhotoUrl: employee['profile_photo_url'] as String?,
               ),
             ),
           );
@@ -63,10 +64,16 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on TimeoutException {
       setState(() => _isLoading = false);
-      showErrorSnackbar(context, 'Server tidak merespons. Pastikan server berjalan.');
+      showErrorSnackbar(
+        context,
+        'Server tidak merespons. Pastikan server berjalan.',
+      );
     } on FormatException {
       setState(() => _isLoading = false);
-      showErrorSnackbar(context, 'Response server tidak valid. Periksa konfigurasi API.');
+      showErrorSnackbar(
+        context,
+        'Response server tidak valid. Periksa konfigurasi API.',
+      );
     } catch (e) {
       setState(() => _isLoading = false);
       showErrorSnackbar(context, 'Gagal terhubung ke server: ${e.toString()}');
@@ -272,7 +279,9 @@ class _LoginPageState extends State<LoginPage> {
                             ? []
                             : [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.35,
+                                  ),
                                   blurRadius: 16,
                                   offset: const Offset(0, 6),
                                 ),
@@ -316,7 +325,10 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         const Text(
                           'Belum punya akun? ',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
@@ -332,7 +344,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             decoration: const BoxDecoration(
                               border: Border(
-                                bottom: BorderSide(color: AppColors.primary, width: 1.5),
+                                bottom: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                             child: const Text(

@@ -15,8 +15,14 @@ import '../core/app_constants.dart';
 class HomePage extends StatefulWidget {
   final String name;
   final String phoneNumber;
+  final String? profilePhotoUrl;
 
-  const HomePage({super.key, required this.name, required this.phoneNumber});
+  const HomePage({
+    super.key,
+    required this.name,
+    required this.phoneNumber,
+    this.profilePhotoUrl,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -25,6 +31,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final AttendanceController _controller;
   late Timer _clockTimer;
+  late String _employeeName;
+  late String _employeePhoneNumber;
+  String? _employeeProfilePhotoUrl;
   String _currentTime = '';
   String _currentDate = '';
   int _currentNavIndex = 0;
@@ -37,6 +46,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _employeeName = widget.name;
+    _employeePhoneNumber = widget.phoneNumber;
+    _employeeProfilePhotoUrl = widget.profilePhotoUrl;
     _controller = AttendanceController(
       name: widget.name,
       phoneNumber: widget.phoneNumber,
@@ -394,7 +406,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           // Company / user name
           Text(
-            widget.name.toUpperCase(),
+            _employeeName.toUpperCase(),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 15,
@@ -881,18 +893,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               );
               if (mounted) setState(() => _currentNavIndex = 0);
             } else if (index == 3) {
-              await Navigator.push(
+              final updatedEmployee = await Navigator.push<Map<String, dynamic>>(
                 context,
                 MaterialPageRoute(
                   builder: (_) => MorePage(
-                    name: widget.name,
-                    phoneNumber: widget.phoneNumber,
+                    name: _employeeName,
+                    phoneNumber: _employeePhoneNumber,
+                    profilePhotoUrl: _employeeProfilePhotoUrl,
                     onRegisterFace: _onRegisterFace,
                     records: SessionManager.getRecords(widget.name),
                   ),
                 ),
               );
-              if (mounted) setState(() => _currentNavIndex = 0);
+              if (mounted) {
+                if (updatedEmployee != null) {
+                  _applyUpdatedEmployee(updatedEmployee);
+                }
+                setState(() => _currentNavIndex = 0);
+              }
             } else {
               setState(() => _currentNavIndex = index);
             }
@@ -925,5 +943,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  void _applyUpdatedEmployee(Map<String, dynamic> employee) {
+    setState(() {
+      _employeeName = employee['name'] as String? ?? _employeeName;
+      _employeePhoneNumber =
+          employee['phone'] as String? ?? _employeePhoneNumber;
+      _employeeProfilePhotoUrl =
+          employee['profile_photo_url'] as String? ?? _employeeProfilePhotoUrl;
+    });
   }
 }

@@ -1,15 +1,18 @@
 import 'package:absensi_ob/models/attendance_record.dart';
-import 'package:absensi_ob/pages/history_page.dart';
+import 'package:absensi_ob/pages/cash_advance_request_page.dart';
+import 'package:absensi_ob/pages/leave_request_page.dart';
 import 'package:absensi_ob/pages/login_page.dart';
-import 'package:absensi_ob/pages/messages_page.dart';
+import 'package:absensi_ob/pages/profile_settings_page.dart';
+import 'package:absensi_ob/pages/user_guide_page.dart';
 import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
 
-class MorePage extends StatelessWidget {
+class MorePage extends StatefulWidget {
   final String name;
   final String phoneNumber;
+  final String? profilePhotoUrl;
   final VoidCallback onRegisterFace;
   final List<AttendanceRecord> records;
 
@@ -17,87 +20,155 @@ class MorePage extends StatelessWidget {
     super.key,
     required this.name,
     required this.phoneNumber,
+    this.profilePhotoUrl,
     required this.onRegisterFace,
     required this.records,
   });
 
   @override
+  State<MorePage> createState() => _MorePageState();
+}
+
+class _MorePageState extends State<MorePage> {
+  late String _name;
+  late String _phoneNumber;
+  String? _profilePhotoUrl;
+  Map<String, dynamic>? _updatedEmployee;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = widget.name;
+    _phoneNumber = widget.phoneNumber;
+    _profilePhotoUrl = widget.profilePhotoUrl;
+  }
+
+  void _applyUpdatedEmployee(Map<String, dynamic> employee) {
+    setState(() {
+      _updatedEmployee = employee;
+      _name = employee['name'] as String? ?? _name;
+      _phoneNumber = employee['phone'] as String? ?? _phoneNumber;
+      _profilePhotoUrl =
+          employee['profile_photo_url'] as String? ?? _profilePhotoUrl;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
         backgroundColor: AppColors.bg,
-        elevation: 0,
-        title: const Text(
-          'More',
-          style: TextStyle(
-            color: AppColors.textDark,
-            fontWeight: FontWeight.w800,
+        appBar: AppBar(
+          backgroundColor: AppColors.bg,
+          elevation: 0,
+          title: const Text(
+            'More',
+            style: TextStyle(
+              color: AppColors.textDark,
+              fontWeight: FontWeight.w800,
+            ),
           ),
+          iconTheme: const IconThemeData(color: AppColors.textDark),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textDark),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: [
-          _ProfileHeader(name: name, phoneNumber: phoneNumber),
-          const SizedBox(height: 18),
-          _SectionTitle('Akun & Presensi'),
-          _MenuTile(
-            icon: Icons.face_retouching_natural_rounded,
-            color: AppColors.primary,
-            title: 'Registrasi ulang wajah',
-            subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
-            onTap: () {
-              Navigator.pop(context);
-              onRegisterFace();
-            },
-          ),
-          _MenuTile(
-            icon: Icons.history_rounded,
-            color: AppColors.success,
-            title: 'Riwayat presensi',
-            subtitle: 'Lihat clock in dan clock out yang tersimpan.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => HistoryPage(records: records)),
-              );
-            },
-          ),
-          _MenuTile(
-            icon: Icons.notifications_rounded,
-            color: const Color(0xFFF59E0B),
-            title: 'Pesan admin',
-            subtitle: 'Buka pengumuman dan instruksi dari web admin.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MessagesPage()),
-              );
-            },
-          ),
-          const SizedBox(height: 18),
-          _SectionTitle('Saran isi halaman More'),
-          const _SuggestionBox(),
-          const SizedBox(height: 18),
-          _MenuTile(
-            icon: Icons.logout_rounded,
-            color: AppColors.error,
-            title: 'Logout',
-            subtitle: 'Keluar dari akun karyawan di perangkat ini.',
-            onTap: () async {
-              await TokenStorage.clearToken();
-              if (!context.mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (_) => false,
-              );
-            },
-          ),
-        ],
-      ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          children: [
+            _ProfileHeader(
+              name: _name,
+              phoneNumber: _phoneNumber,
+              profilePhotoUrl: _profilePhotoUrl,
+            ),
+            const SizedBox(height: 18),
+            _SectionTitle('Akun & Presensi'),
+            _MenuTile(
+              icon: Icons.manage_accounts_rounded,
+              color: AppColors.accent,
+              title: 'Profile Settings',
+              subtitle: 'Ubah nama, nomor HP, dan password akun.',
+              onTap: () async {
+                final employee = await Navigator.push<Map<String, dynamic>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileSettingsPage(
+                      name: _name,
+                      phoneNumber: _phoneNumber,
+                      profilePhotoUrl: _profilePhotoUrl,
+                    ),
+                  ),
+                );
+                if (employee != null && mounted) {
+                  _applyUpdatedEmployee(employee);
+                  Navigator.pop(context, employee);
+                }
+              },
+            ),
+            _MenuTile(
+              icon: Icons.face_retouching_natural_rounded,
+              color: AppColors.primary,
+              title: 'Registrasi ulang wajah',
+              subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
+              onTap: () {
+                Navigator.pop(context, _updatedEmployee);
+                widget.onRegisterFace();
+              },
+            ),
+            _MenuTile(
+              icon: Icons.payments_rounded,
+              color: AppColors.success,
+              title: 'Pengajuan Kasbon',
+              subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CashAdvanceRequestPage(),
+                  ),
+                );
+              },
+            ),
+            _MenuTile(
+              icon: Icons.event_available_rounded,
+              color: const Color(0xFFF59E0B),
+              title: 'Pengajuan Cuti',
+              subtitle: 'Pengajuan Cuti Ke Perusahaan Melalui Aplikasi.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LeaveRequestPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+            _SectionTitle('Bantuan'),
+            _MenuTile(
+              icon: Icons.menu_book_rounded,
+              color: const Color(0xFF0EA5E9),
+              title: 'Panduan Pengguna Aplikasi',
+              subtitle: 'Lihat cara menggunakan fitur utama aplikasi.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UserGuidePage()),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+            _MenuTile(
+              icon: Icons.logout_rounded,
+              color: AppColors.error,
+              title: 'Logout',
+              subtitle: 'Keluar dari akun karyawan di perangkat ini.',
+              onTap: () async {
+                await TokenStorage.clearToken();
+                if (!context.mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (_) => false,
+                );
+              },
+            ),
+          ],
+        ),
     );
   }
 }
@@ -105,12 +176,21 @@ class MorePage extends StatelessWidget {
 class _ProfileHeader extends StatelessWidget {
   final String name;
   final String phoneNumber;
+  final String? profilePhotoUrl;
 
-  const _ProfileHeader({required this.name, required this.phoneNumber});
+  const _ProfileHeader({
+    required this.name,
+    required this.phoneNumber,
+    required this.profilePhotoUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
     final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
+    final photoUrl = profilePhotoUrl;
+    final imageProvider = photoUrl != null && photoUrl.isNotEmpty
+        ? NetworkImage(photoUrl)
+        : null;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -136,16 +216,19 @@ class _ProfileHeader extends StatelessWidget {
                 colors: [Color(0xFF8B7CF6), Color(0xFF4F6AF0)],
               ),
             ),
-            child: Center(
-              child: Text(
-                initial,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
+            clipBehavior: Clip.antiAlias,
+            child: imageProvider != null
+                ? Image(image: imageProvider, fit: BoxFit.cover)
+                : Center(
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -259,26 +342,6 @@ class _MenuTile extends StatelessWidget {
           Icons.chevron_right_rounded,
           color: AppColors.textMuted,
         ),
-      ),
-    );
-  }
-}
-
-class _SuggestionBox extends StatelessWidget {
-  const _SuggestionBox();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.16)),
-      ),
-      child: const Text(
-        'Cocoknya More diisi profil karyawan, registrasi ulang wajah, riwayat presensi, pesan admin, logout, lalu nanti bisa ditambah pengajuan izin, ubah password, bantuan, dan kebijakan kantor.',
-        style: TextStyle(color: AppColors.textDark, fontSize: 13, height: 1.45),
       ),
     );
   }

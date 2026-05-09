@@ -15,6 +15,7 @@ class Employee extends Authenticatable
         'jabatan',
         'tanggal_masuk',
         'face_embedding',
+        'profile_photo_path',
         'kasbon_limit',
         'username',
         'password',
