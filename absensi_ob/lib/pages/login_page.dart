@@ -159,11 +159,12 @@ class _LoginPageState extends State<LoginPage> {
                           child: Image.asset(
                             'assets/logo.png',
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.fingerprint,
-                              color: Colors.white,
-                              size: 40,
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.fingerprint,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
                           ),
                         ),
                       ),

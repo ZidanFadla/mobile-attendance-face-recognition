@@ -9,9 +9,7 @@ void showErrorSnackbar(BuildContext context, String message) {
         children: [
           const Icon(Icons.error_outline, color: Colors.white, size: 18),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(message, style: const TextStyle(fontSize: 13)),
-          ),
+          Expanded(child: Text(message, style: const TextStyle(fontSize: 13))),
         ],
       ),
       backgroundColor: AppColors.error,

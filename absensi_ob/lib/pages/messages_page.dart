@@ -19,11 +19,12 @@ class _MessagesPageState extends State<MessagesPage> {
     super.initState();
     MessageService.startPolling(
       onMessages: (messages) {
-        if (mounted)
+        if (mounted) {
           setState(() {
             _messages = messages;
             _loading = false;
           });
+        }
       },
       onUnreadCount: (_) {},
       interval: const Duration(seconds: 10),
@@ -90,7 +91,8 @@ class _MessagesPageState extends State<MessagesPage> {
               color: AppColors.primary,
               onRefresh: () async {
                 final messages = await MessageService.fetchMessages();
-                if (mounted) setState(() => _messages = messages);
+                if (!mounted) return;
+                setState(() => _messages = messages);
               },
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -109,7 +111,7 @@ class _MessagesPageState extends State<MessagesPage> {
           Icon(
             Icons.inbox_rounded,
             size: 64,
-            color: AppColors.textMuted.withOpacity(0.3),
+            color: AppColors.textMuted.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -158,11 +160,11 @@ class _MessagesPageState extends State<MessagesPage> {
           border: Border.all(
             color: isRead
                 ? AppColors.border
-                : AppColors.primary.withOpacity(0.3),
+                : AppColors.primary.withValues(alpha: 0.3),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -177,7 +179,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: _typeColor(type).withOpacity(0.1),
+                  color: _typeColor(type).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(_typeIcon(type), color: _typeColor(type), size: 20),
@@ -204,7 +206,7 @@ class _MessagesPageState extends State<MessagesPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _typeColor(type).withOpacity(0.1),
+                            color: _typeColor(type).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -253,18 +255,19 @@ class _MessagesPageState extends State<MessagesPage> {
                             height: 150,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 110,
-                              color: AppColors.bg,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Foto tidak bisa dimuat',
-                                style: TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 12,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  height: 110,
+                                  color: AppColors.bg,
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Foto tidak bisa dimuat',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
                           ),
                         ),
                       ),
@@ -391,7 +394,7 @@ class _MessagesPageState extends State<MessagesPage> {
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: _typeColor(type).withOpacity(0.1),
+                        color: _typeColor(type).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(_typeIcon(type), color: _typeColor(type)),
@@ -453,7 +456,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         imageUrl,
                         width: double.infinity,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           height: 180,
                           color: AppColors.bg,
                           alignment: Alignment.center,
@@ -540,17 +543,16 @@ class _MessagesPageState extends State<MessagesPage> {
   Future<void> _openFile(String url) async {
     final uri = Uri.parse(url);
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak bisa membuka file atau foto.')),
-      );
-    }
+    if (opened || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Tidak bisa membuka file atau foto.')),
+    );
   }
 
   void _openImagePreview(String url, String title) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.92),
+      barrierColor: Colors.black.withValues(alpha: 0.92),
       builder: (context) {
         return Dialog.fullscreen(
           backgroundColor: Colors.black,
@@ -600,10 +602,11 @@ class _MessagesPageState extends State<MessagesPage> {
                       child: Image.network(
                         url,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Text(
-                          'Foto tidak bisa dimuat',
-                          style: TextStyle(color: Colors.white70),
-                        ),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Text(
+                              'Foto tidak bisa dimuat',
+                              style: TextStyle(color: Colors.white70),
+                            ),
                       ),
                     ),
                   ),

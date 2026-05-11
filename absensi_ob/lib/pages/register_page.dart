@@ -212,11 +212,12 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Image.asset(
                             'assets/logo.png',
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.fingerprint,
-                              color: Colors.white,
-                              size: 36,
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.fingerprint,
+                                  color: Colors.white,
+                                  size: 36,
+                                ),
                           ),
                         ),
                       ),
@@ -348,7 +349,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? []
                             : [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.35,
+                                  ),
                                   blurRadius: 16,
                                   offset: const Offset(0, 6),
                                 ),
@@ -392,7 +395,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         const Text(
                           'Sudah punya akun? ',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
@@ -408,7 +414,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             decoration: const BoxDecoration(
                               border: Border(
-                                bottom: BorderSide(color: AppColors.primary, width: 1.5),
+                                bottom: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                             child: const Text(

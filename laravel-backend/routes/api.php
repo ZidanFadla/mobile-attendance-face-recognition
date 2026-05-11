@@ -6,6 +6,7 @@ use App\Http\Controllers\FaceRecognitionController;
 use App\Http\Controllers\AttendanceApiController;
 use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\MessageApiController;
+use App\Http\Controllers\RequestApiController;
 
 
 Route::get('/user', function (Request $request) {
@@ -29,4 +30,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages', [MessageApiController::class, 'index']);
     Route::post('/messages/{message}/read', [MessageApiController::class, 'markOneRead']);
     Route::post('/messages/read', [MessageApiController::class, 'markRead']);
+
+    // Leave and cash advance requests
+    Route::get('/leave-balance', [RequestApiController::class, 'leaveBalance']);
+    Route::get('/leave-requests', [RequestApiController::class, 'leaveIndex']);
+    Route::post('/leave-requests', [RequestApiController::class, 'leaveStore']);
+    Route::get('/cash-advance-summary', [RequestApiController::class, 'cashAdvanceSummary']);
+    Route::get('/cash-advance-requests', [RequestApiController::class, 'cashAdvanceIndex']);
+    Route::post('/cash-advance-requests', [RequestApiController::class, 'cashAdvanceStore']);
+    Route::delete('/requests/{type}/{id}', [RequestApiController::class, 'cancel']);
 });

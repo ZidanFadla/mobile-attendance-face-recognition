@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +18,7 @@ class Employee extends Authenticatable
         'face_embedding',
         'profile_photo_path',
         'kasbon_limit',
+        'annual_leave_quota',
         'username',
         'password',
     ];
@@ -29,5 +31,15 @@ class Employee extends Authenticatable
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function cashAdvanceRequests(): HasMany
+    {
+        return $this->hasMany(CashAdvanceRequest::class);
     }
 }

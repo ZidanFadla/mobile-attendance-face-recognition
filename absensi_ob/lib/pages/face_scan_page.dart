@@ -29,7 +29,8 @@ class _FaceScanPageState extends State<FaceScanPage> {
     );
     _cameraController = CameraController(frontCamera, ResolutionPreset.medium);
     await _cameraController!.initialize();
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
   }
 
   // Cek kecerahan gambar
@@ -65,6 +66,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
 
       // Cek kecerahan
       final brightness = await _checkBrightness(photo.path);
+      if (!mounted) return;
 
       if (brightness < 50) {
         // Terlalu gelap
@@ -87,8 +89,9 @@ class _FaceScanPageState extends State<FaceScanPage> {
       }
 
       // Cahaya OK, lanjut
-      if (mounted) Navigator.pop(context, photo.path);
+      Navigator.pop(context, photo.path);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isProcessing = false);
     }
   }

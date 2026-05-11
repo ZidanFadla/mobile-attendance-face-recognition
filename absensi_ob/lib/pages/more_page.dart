@@ -3,6 +3,7 @@ import 'package:absensi_ob/pages/cash_advance_request_page.dart';
 import 'package:absensi_ob/pages/leave_request_page.dart';
 import 'package:absensi_ob/pages/login_page.dart';
 import 'package:absensi_ob/pages/profile_settings_page.dart';
+import 'package:absensi_ob/pages/request_history_page.dart';
 import 'package:absensi_ob/pages/user_guide_page.dart';
 import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
@@ -56,119 +57,150 @@ class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.bg,
+      appBar: AppBar(
         backgroundColor: AppColors.bg,
-        appBar: AppBar(
-          backgroundColor: AppColors.bg,
-          elevation: 0,
-          title: const Text(
-            'More',
-            style: TextStyle(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w800,
-            ),
+        elevation: 0,
+        title: const Text(
+          'More',
+          style: TextStyle(
+            color: AppColors.textDark,
+            fontWeight: FontWeight.w800,
           ),
-          iconTheme: const IconThemeData(color: AppColors.textDark),
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          children: [
-            _ProfileHeader(
-              name: _name,
-              phoneNumber: _phoneNumber,
-              profilePhotoUrl: _profilePhotoUrl,
-            ),
-            const SizedBox(height: 18),
-            _SectionTitle('Akun & Presensi'),
-            _MenuTile(
-              icon: Icons.manage_accounts_rounded,
-              color: AppColors.accent,
-              title: 'Profile Settings',
-              subtitle: 'Ubah nama, nomor HP, dan password akun.',
-              onTap: () async {
-                final employee = await Navigator.push<Map<String, dynamic>>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfileSettingsPage(
-                      name: _name,
-                      phoneNumber: _phoneNumber,
-                      profilePhotoUrl: _profilePhotoUrl,
-                    ),
+        iconTheme: const IconThemeData(color: AppColors.textDark),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          _ProfileHeader(
+            name: _name,
+            phoneNumber: _phoneNumber,
+            profilePhotoUrl: _profilePhotoUrl,
+          ),
+          const SizedBox(height: 18),
+          _SectionTitle('Akun & Presensi'),
+          _MenuTile(
+            icon: Icons.manage_accounts_rounded,
+            color: AppColors.accent,
+            title: 'Profile Settings',
+            subtitle: 'Ubah nama, nomor HP, dan password akun.',
+            onTap: () async {
+              final employee = await Navigator.push<Map<String, dynamic>>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfileSettingsPage(
+                    name: _name,
+                    phoneNumber: _phoneNumber,
+                    profilePhotoUrl: _profilePhotoUrl,
                   ),
-                );
-                if (employee != null && mounted) {
-                  _applyUpdatedEmployee(employee);
-                  Navigator.pop(context, employee);
-                }
-              },
-            ),
-            _MenuTile(
-              icon: Icons.face_retouching_natural_rounded,
-              color: AppColors.primary,
-              title: 'Registrasi ulang wajah',
-              subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
-              onTap: () {
-                Navigator.pop(context, _updatedEmployee);
-                widget.onRegisterFace();
-              },
-            ),
-            _MenuTile(
-              icon: Icons.payments_rounded,
-              color: AppColors.success,
-              title: 'Pengajuan Kasbon',
-              subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CashAdvanceRequestPage(),
+                ),
+              );
+              if (!context.mounted || employee == null) return;
+              _applyUpdatedEmployee(employee);
+              Navigator.pop(context, employee);
+            },
+          ),
+          _MenuTile(
+            icon: Icons.face_retouching_natural_rounded,
+            color: AppColors.primary,
+            title: 'Registrasi ulang wajah',
+            subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
+            onTap: () {
+              Navigator.pop(context, _updatedEmployee);
+              widget.onRegisterFace();
+            },
+          ),
+          _MenuTile(
+            icon: Icons.payments_rounded,
+            color: AppColors.success,
+            title: 'Pengajuan Kasbon',
+            subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CashAdvanceRequestPage(),
+                ),
+              );
+            },
+          ),
+          _MenuTile(
+            icon: Icons.receipt_long_rounded,
+            color: const Color(0xFF0EA5E9),
+            title: 'Riwayat Kasbon',
+            subtitle: 'Lihat status pengajuan dan total kasbon yang disetujui.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RequestHistoryPage(
+                    type: RequestHistoryType.cashAdvance,
                   ),
-                );
-              },
-            ),
-            _MenuTile(
-              icon: Icons.event_available_rounded,
-              color: const Color(0xFFF59E0B),
-              title: 'Pengajuan Cuti',
-              subtitle: 'Pengajuan Cuti Ke Perusahaan Melalui Aplikasi.',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LeaveRequestPage()),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-            _SectionTitle('Bantuan'),
-            _MenuTile(
-              icon: Icons.menu_book_rounded,
-              color: const Color(0xFF0EA5E9),
-              title: 'Panduan Pengguna Aplikasi',
-              subtitle: 'Lihat cara menggunakan fitur utama aplikasi.',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserGuidePage()),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-            _MenuTile(
-              icon: Icons.logout_rounded,
-              color: AppColors.error,
-              title: 'Logout',
-              subtitle: 'Keluar dari akun karyawan di perangkat ini.',
+                ),
+              );
+            },
+          ),
+          _MenuTile(
+            icon: Icons.event_available_rounded,
+            color: const Color(0xFFF59E0B),
+            title: 'Pengajuan Cuti',
+            subtitle: 'Pengajuan Cuti Ke Perusahaan Melalui Aplikasi.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeaveRequestPage()),
+              );
+            },
+          ),
+          _MenuTile(
+            icon: Icons.event_note_rounded,
+            color: const Color(0xFF8B5CF6),
+            title: 'Riwayat Cuti',
+            subtitle:
+                'Pantau pengajuan cuti yang menunggu, disetujui, atau ditolak.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const RequestHistoryPage(type: RequestHistoryType.leave),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 18),
+          _SectionTitle('Bantuan'),
+          _MenuTile(
+            icon: Icons.menu_book_rounded,
+            color: const Color(0xFF0EA5E9),
+            title: 'Panduan Pengguna Aplikasi',
+            subtitle: 'Lihat cara menggunakan fitur utama aplikasi.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UserGuidePage()),
+              );
+            },
+          ),
+          const SizedBox(height: 18),
+          _MenuTile(
+            icon: Icons.logout_rounded,
+            color: AppColors.error,
+            title: 'Logout',
+            subtitle: 'Keluar dari akun karyawan di perangkat ini.',
               onTap: () async {
                 await TokenStorage.clearToken();
                 if (!context.mounted) return;
                 Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (_) => false,
-                );
-              },
-            ),
-          ],
-        ),
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+                (_) => false,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

@@ -7,7 +7,9 @@ class LocationService {
     // 1. Cek apakah GPS aktif
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('GPS tidak aktif. Aktifkan lokasi di pengaturan perangkat.');
+      throw Exception(
+        'GPS tidak aktif. Aktifkan lokasi di pengaturan perangkat.',
+      );
     }
 
     // 2. Cek permission
@@ -29,7 +31,9 @@ class LocationService {
     }
 
     return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.bestForNavigation,
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+      ),
     );
   }
 }

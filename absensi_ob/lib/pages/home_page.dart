@@ -420,7 +420,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               const SizedBox(width: 12),
               _buildAppBarIcon(Icons.logout_rounded, () async {
                 await TokenStorage.clearToken();
-                if (!context.mounted) return;
+                if (!mounted) return;
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -891,26 +891,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 context,
                 MaterialPageRoute(builder: (_) => const MessagesPage()),
               );
-              if (mounted) setState(() => _currentNavIndex = 0);
+              if (!mounted) return;
+              setState(() => _currentNavIndex = 0);
             } else if (index == 3) {
-              final updatedEmployee = await Navigator.push<Map<String, dynamic>>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MorePage(
-                    name: _employeeName,
-                    phoneNumber: _employeePhoneNumber,
-                    profilePhotoUrl: _employeeProfilePhotoUrl,
-                    onRegisterFace: _onRegisterFace,
-                    records: SessionManager.getRecords(widget.name),
-                  ),
-                ),
-              );
-              if (mounted) {
-                if (updatedEmployee != null) {
-                  _applyUpdatedEmployee(updatedEmployee);
-                }
-                setState(() => _currentNavIndex = 0);
+              final updatedEmployee =
+                  await Navigator.push<Map<String, dynamic>>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MorePage(
+                        name: _employeeName,
+                        phoneNumber: _employeePhoneNumber,
+                        profilePhotoUrl: _employeeProfilePhotoUrl,
+                        onRegisterFace: _onRegisterFace,
+                        records: SessionManager.getRecords(widget.name),
+                      ),
+                    ),
+                  );
+              if (!mounted) return;
+              if (updatedEmployee != null) {
+                _applyUpdatedEmployee(updatedEmployee);
               }
+              setState(() => _currentNavIndex = 0);
             } else {
               setState(() => _currentNavIndex = index);
             }

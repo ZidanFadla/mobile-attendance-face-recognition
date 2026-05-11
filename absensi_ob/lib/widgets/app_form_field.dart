@@ -53,7 +53,10 @@ class AppFormField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+            hintStyle: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 13,
+            ),
             prefixIcon: Container(
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.all(8),
@@ -84,7 +87,10 @@ class AppFormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

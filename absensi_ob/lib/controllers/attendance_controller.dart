@@ -113,14 +113,14 @@ class AttendanceController extends ChangeNotifier {
       _setLoading(true, '🔍 Memverifikasi wajah...\nMohon tunggu sebentar');
       final faceResult = await FaceRecognitionService.verifyFace(
         imageFile: photoFile,
-        userId: phoneNumber,
       );
 
       if (!faceResult['success'] || !faceResult['match']) {
         _setLoading(false);
         return AttendanceResult(
           success: false,
-          message: faceResult['message'] ??
+          message:
+              faceResult['message'] ??
               'Wajah tidak cocok (${faceResult['confidence']}%).\nSilakan ulangi.',
         );
       }
@@ -200,7 +200,8 @@ class AttendanceController extends ChangeNotifier {
       _setLoading(false);
       return AttendanceResult(
         success: false,
-        message: 'Terjadi kesalahan:\n${e.toString().replaceAll('Exception: ', '')}',
+        message:
+            'Terjadi kesalahan:\n${e.toString().replaceAll('Exception: ', '')}',
       );
     }
   }
@@ -216,8 +217,6 @@ class AttendanceController extends ChangeNotifier {
 
       final regResult = await FaceRecognitionService.registerFaceMultiple(
         imageFiles: photos,
-        userId: phoneNumber,
-        userName: name,
       );
 
       _setLoading(false);
@@ -241,7 +240,8 @@ class AttendanceController extends ChangeNotifier {
       _setLoading(false);
       return AttendanceResult(
         success: false,
-        message: 'Gagal registrasi:\n${e.toString().replaceAll('Exception: ', '')}',
+        message:
+            'Gagal registrasi:\n${e.toString().replaceAll('Exception: ', '')}',
       );
     }
   }

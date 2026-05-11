@@ -1,19 +1,18 @@
-import 'package:geolocator/geolocator.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PermissionService {
   PermissionService._();
 
-  /// Request semua permissions yang dibutuhkan aplikasi
+  /// Request semua permissions yang dibutuhkan aplikasi.
   static Future<bool> requestAllPermissions() async {
     try {
-      // 1. Request Location Permission
       final locationPermission = await _requestLocationPermission();
       if (!locationPermission) {
         throw Exception('Location permission diperlukan untuk absensi');
       }
 
-      // 2. Request Camera Permission
       final cameraPermission = await _requestCameraPermission();
       if (!cameraPermission) {
         throw Exception('Camera permission diperlukan untuk face recognition');
@@ -21,7 +20,7 @@ class PermissionService {
 
       return true;
     } catch (e) {
-      print('Permission error: $e');
+      debugPrint('Permission error: $e');
       return false;
     }
   }
@@ -34,15 +33,12 @@ class PermissionService {
         permission = await Geolocator.requestPermission();
       }
 
-      if (permission == LocationPermission.deniedForever) {
-        // User permanently denied permission
-        return false;
-      }
+      if (permission == LocationPermission.deniedForever) return false;
 
       return permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always;
     } catch (e) {
-      print('Location permission error: $e');
+      debugPrint('Location permission error: $e');
       return false;
     }
   }
@@ -52,24 +48,22 @@ class PermissionService {
       final cameras = await availableCameras();
       return cameras.isNotEmpty;
     } on CameraException catch (e) {
-      print('Camera permission error: $e');
+      debugPrint('Camera permission error: $e');
       return false;
     } catch (e) {
-      print('Camera error: $e');
+      debugPrint('Camera error: $e');
       return false;
     }
   }
 
-  /// Check apakah semua permissions sudah granted
+  /// Check apakah semua permissions sudah granted.
   static Future<bool> hasAllPermissions() async {
     try {
-      // Check location
       final locationPermission = await Geolocator.checkPermission();
       final hasLocation =
           locationPermission == LocationPermission.whileInUse ||
           locationPermission == LocationPermission.always;
 
-      // Check camera
       final cameras = await availableCameras();
       final hasCamera = cameras.isNotEmpty;
 
