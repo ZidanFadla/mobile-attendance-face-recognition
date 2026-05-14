@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 
 /// Reusable styled form field — shared between LoginPage & RegisterPage.
 class AppFormField extends StatelessWidget {
@@ -36,7 +36,7 @@ class AppFormField extends StatelessWidget {
           style: TextStyle(
             fontSize: labelFontSize,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             letterSpacing: 0.2,
           ),
         ),
@@ -48,23 +48,20 @@ class AppFormField extends StatelessWidget {
           validator: validator,
           style: const TextStyle(
             fontSize: 14,
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 13,
-            ),
+            hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
             prefixIcon: Container(
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: AppTheme.armyGreenLight,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 16),
+              child: Icon(icon, color: AppTheme.armyGreen, size: 16),
             ),
             prefixIconConstraints: const BoxConstraints(
               minWidth: 0,
@@ -72,35 +69,35 @@ class AppFormField extends StatelessWidget {
             ),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: const Color(0xFFFAFBFC),
+            fillColor: AppTheme.surfaceAlt,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 14,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
-                color: AppColors.primary,
+                color: AppTheme.armyGreen,
                 width: 1.5,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.error, width: 1.5),
             ),
-            errorStyle: const TextStyle(fontSize: 11, color: AppColors.error),
+            errorStyle: const TextStyle(fontSize: 11, color: AppTheme.error),
           ),
         ),
       ],

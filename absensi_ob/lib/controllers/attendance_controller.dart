@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import '../models/attendance_record.dart';
+import '../core/app_constants.dart';
 import '../services/api_service.dart';
 import '../services/face_recognition_service.dart';
 import '../services/location_service.dart';
@@ -81,6 +82,13 @@ class AttendanceController extends ChangeNotifier {
   }
 
   Future<bool> _fetchFaceRegistrationStatus() async {
+    if (kDebugMode && AppConstants.devAttendanceBypass) {
+      isFaceRegistered = true;
+      isCheckingFace = false;
+      notifyListeners();
+      return false;
+    }
+
     try {
       isFaceRegistered = await ApiService.checkFaceRegistration();
     } catch (_) {
@@ -210,6 +218,15 @@ class AttendanceController extends ChangeNotifier {
 
   Future<AttendanceResult> registerFace(List<File> photos) async {
     try {
+      if (kDebugMode && AppConstants.devAttendanceBypass) {
+        isFaceRegistered = true;
+        notifyListeners();
+        return const AttendanceResult(
+          success: true,
+          message: 'Mode emulator: registrasi wajah dilewati.',
+        );
+      }
+
       _setLoading(
         true,
         '🧠 Memproses data wajah...\nIni mungkin memerlukan beberapa detik',

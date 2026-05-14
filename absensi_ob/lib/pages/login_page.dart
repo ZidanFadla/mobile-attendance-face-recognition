@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'home_page.dart';
 import '../services/api_service.dart';
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
 import 'register_page.dart';
@@ -83,72 +83,34 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       body: Stack(
         children: [
-          // Background decorative circles
-          Positioned(
-            top: -80,
-            right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 60,
-            right: 30,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.accent.withValues(alpha: 0.07),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -60,
-            left: -40,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
                     // Logo
                     Center(
                       child: Container(
-                        width: 140,
-                        height: 140,
+                        width: 112,
+                        height: 112,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                            colors: AppTheme.gradientArmyGreen,
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(22),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
+                              color: AppTheme.armyGreen.withValues(alpha: 0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -169,17 +131,16 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // Title
                     const Text(
                       'Selamat Datang',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 26,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                        letterSpacing: -0.5,
+                        color: AppTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -187,9 +148,9 @@ class _LoginPageState extends State<LoginPage> {
                       'Absensi Karyawan Office Boy\nMarkas Besar Angkatan Darat',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 20,
-                        color: AppColors.textMuted,
-                        height: 1.55,
+                        fontSize: 13,
+                        color: AppTheme.textMuted,
+                        height: 1.45,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -200,28 +161,23 @@ class _LoginPageState extends State<LoginPage> {
                         height: 3,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                            colors: AppTheme.gradientArmyGreen,
                           ),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 28),
 
                     // Form Card
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 24,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        border: Border.all(color: AppTheme.border),
+                        boxShadow: [AppTheme.cardShadow],
                       ),
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
                           AppFormField(
@@ -247,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: AppColors.textMuted,
+                                color: AppTheme.textMuted,
                                 size: 20,
                               ),
                               onPressed: () => setState(
@@ -270,23 +226,13 @@ class _LoginPageState extends State<LoginPage> {
                         gradient: _isLoading
                             ? null
                             : const LinearGradient(
-                                colors: [AppColors.primary, Color(0xFF6366F1)],
+                                colors: AppTheme.gradientArmyGreen,
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
-                        color: _isLoading ? AppColors.border : null,
+                        color: _isLoading ? AppTheme.border : null,
                         borderRadius: BorderRadius.circular(14),
-                        boxShadow: _isLoading
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.35,
-                                  ),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
+                        boxShadow: _isLoading ? [] : [AppTheme.buttonShadow],
                       ),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -303,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
                                 height: 22,
                                 width: 22,
                                 child: CircularProgressIndicator(
-                                  color: AppColors.primary,
+                                  color: AppTheme.armyGreen,
                                   strokeWidth: 2.5,
                                 ),
                               )
@@ -327,7 +273,7 @@ class _LoginPageState extends State<LoginPage> {
                         const Text(
                           'Belum punya akun? ',
                           style: TextStyle(
-                            color: AppColors.textMuted,
+                            color: AppTheme.textMuted,
                             fontSize: 13,
                           ),
                         ),
@@ -346,7 +292,7 @@ class _LoginPageState extends State<LoginPage> {
                             decoration: const BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.primary,
+                                  color: AppTheme.armyGreen,
                                   width: 1.5,
                                 ),
                               ),
@@ -354,7 +300,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: const Text(
                               'Daftar',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: AppTheme.armyGreen,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
                               ),

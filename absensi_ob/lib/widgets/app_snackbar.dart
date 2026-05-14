@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 
 /// Shared error snackbar — eliminates duplicated _showError across pages.
 void showErrorSnackbar(BuildContext context, String message) {
@@ -12,7 +12,7 @@ void showErrorSnackbar(BuildContext context, String message) {
           Expanded(child: Text(message, style: const TextStyle(fontSize: 13))),
         ],
       ),
-      backgroundColor: AppColors.error,
+      backgroundColor: AppTheme.error,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       margin: const EdgeInsets.all(16),

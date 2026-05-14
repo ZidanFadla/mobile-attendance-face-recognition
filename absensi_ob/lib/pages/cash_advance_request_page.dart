@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/app_snackbar.dart';
 import 'request_history_page.dart';
@@ -148,15 +148,15 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
         title: const Text(
           'Pengajuan Kasbon',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -184,7 +184,7 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
           children: [
             const _HeaderCard(
               icon: Icons.payments_rounded,
-              color: Color(0xFF10B981),
+              color: AppTheme.success,
               title: 'Form Kasbon Karyawan',
               subtitle:
                   'Ajukan dana sementara dengan alasan, tanggal kebutuhan, dan rencana pengembalian.',
@@ -336,7 +336,7 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(fontSize: 13)),
-        backgroundColor: AppColors.success,
+        backgroundColor: AppTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
@@ -361,7 +361,7 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
   void _showAttachmentSourceSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -376,7 +376,7 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
                   width: 42,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: AppTheme.border,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -424,7 +424,7 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -453,7 +453,7 @@ class _HeaderCard extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: AppColors.textDark,
+                    color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                   ),
@@ -462,7 +462,7 @@ class _HeaderCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -487,9 +487,9 @@ class _SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,7 +497,7 @@ class _SectionCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.textDark,
+              color: AppTheme.textDark,
               fontSize: 15,
               fontWeight: FontWeight.w800,
             ),
@@ -520,9 +520,9 @@ class _CashSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFFDF5),
+        color: AppTheme.surfaceAlt,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.16)),
+        border: Border.all(color: AppTheme.success.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: [
@@ -579,13 +579,13 @@ class _SummaryMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
           ),
           const SizedBox(height: 3),
           Text(
             value,
             style: const TextStyle(
-              color: AppColors.textDark,
+              color: AppTheme.textDark,
               fontWeight: FontWeight.w900,
               fontSize: 14,
             ),
@@ -648,16 +648,16 @@ class _DatePickerTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.bg,
+          color: AppTheme.surfaceAlt,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Row(
           children: [
             const Icon(
               Icons.calendar_month_rounded,
               size: 18,
-              color: AppColors.primary,
+              color: AppTheme.armyGreen,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -667,7 +667,7 @@ class _DatePickerTile extends StatelessWidget {
                   Text(
                     label,
                     style: const TextStyle(
-                      color: AppColors.textMuted,
+                      color: AppTheme.textMuted,
                       fontSize: 12,
                     ),
                   ),
@@ -676,7 +676,7 @@ class _DatePickerTile extends StatelessWidget {
                     display,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: AppColors.textDark,
+                      color: AppTheme.textDark,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
@@ -714,9 +714,9 @@ class _AttachmentTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Row(
           children: [
@@ -724,12 +724,12 @@ class _AttachmentTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: AppTheme.armyGreenLight,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
                 Icons.attach_file_rounded,
-                color: AppColors.primary,
+                color: AppTheme.armyGreen,
               ),
             ),
             const SizedBox(width: 12),
@@ -740,7 +740,7 @@ class _AttachmentTile extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: AppColors.textDark,
+                      color: AppTheme.textDark,
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                     ),
@@ -749,7 +749,7 @@ class _AttachmentTile extends StatelessWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      color: AppColors.textMuted,
+                      color: AppTheme.textMuted,
                       fontSize: 12,
                     ),
                   ),
@@ -759,12 +759,12 @@ class _AttachmentTile extends StatelessWidget {
             if (hasAttachment && onRemove != null)
               IconButton(
                 onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded, color: AppColors.error),
+                icon: const Icon(Icons.close_rounded, color: AppTheme.error),
               )
             else
               const Icon(
                 Icons.add_circle_outline_rounded,
-                color: AppColors.primary,
+                color: AppTheme.armyGreen,
               ),
           ],
         ),
@@ -793,22 +793,22 @@ class _SourceTile extends StatelessWidget {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppTheme.armyGreenLight,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: AppColors.primary),
+        child: Icon(icon, color: AppTheme.armyGreen),
       ),
       title: Text(
         title,
         style: const TextStyle(
-          color: AppColors.textDark,
+          color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 14,
         ),
       ),
       trailing: const Icon(
         Icons.chevron_right_rounded,
-        color: AppColors.textMuted,
+        color: AppTheme.textMuted,
       ),
     );
   }
@@ -824,9 +824,9 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFFDF5),
+        color: AppTheme.surfaceAlt,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.16)),
+        border: Border.all(color: AppTheme.success.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: rows
@@ -839,7 +839,7 @@ class _SummaryCard extends StatelessWidget {
                       child: Text(
                         row.label,
                         style: const TextStyle(
-                          color: AppColors.textMuted,
+                          color: AppTheme.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -849,7 +849,7 @@ class _SummaryCard extends StatelessWidget {
                         row.value,
                         textAlign: TextAlign.right,
                         style: const TextStyle(
-                          color: AppColors.textDark,
+                          color: AppTheme.textDark,
                           fontWeight: FontWeight.w800,
                           fontSize: 12,
                         ),
@@ -909,8 +909,8 @@ class _PrimaryButton extends StatelessWidget {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.success,
-          disabledBackgroundColor: AppColors.success.withValues(alpha: 0.55),
+          backgroundColor: AppTheme.success,
+          disabledBackgroundColor: AppTheme.success.withValues(alpha: 0.55),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -924,20 +924,20 @@ class _PrimaryButton extends StatelessWidget {
 InputDecoration _inputDecoration(String label) {
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: AppColors.textMuted),
+    labelStyle: const TextStyle(color: AppTheme.textMuted),
     filled: true,
-    fillColor: AppColors.bg,
+    fillColor: AppTheme.surfaceAlt,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: const BorderSide(color: AppTheme.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: const BorderSide(color: AppTheme.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.success, width: 1.4),
+      borderSide: const BorderSide(color: AppTheme.success, width: 1.4),
     ),
   );
 }

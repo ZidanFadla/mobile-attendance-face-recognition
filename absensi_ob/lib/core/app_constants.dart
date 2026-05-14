@@ -1,4 +1,3 @@
-/// Semua konstanta global project disimpan di sini.
 class AppConstants {
   AppConstants._();
 
@@ -17,16 +16,16 @@ class AppConstants {
     defaultValue: 'http://192.168.100.17:5000',
   );
 
-  /// Timeout default untuk semua HTTP request.
   static const Duration requestTimeout = Duration(seconds: 30);
-
-  // Face recognition threshold
   static const double faceMatchThreshold = 0.4;
+  static const bool devAttendanceBypass = bool.fromEnvironment(
+    'DEV_ATTENDANCE_BYPASS',
+    defaultValue: false,
+  );
 
-  // Instruksi foto saat registrasi wajah
   static const List<String> faceRegisterInstructions = [
-    '📸 Foto 1/3 — Hadap depan, tatap kamera',
-    '📸 Foto 2/3 — Sedikit miring ke kiri',
-    '📸 Foto 3/3 — Sedikit miring ke kanan',
+    'Foto 1/3 - Hadap depan, tatap kamera',
+    'Foto 2/3 - Sedikit miring ke kiri',
+    'Foto 3/3 - Sedikit miring ke kanan',
   ];
 }

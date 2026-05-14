@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../services/message_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -59,36 +59,36 @@ class _MessagesPageState extends State<MessagesPage> {
       case 'file':
         return Colors.blue;
       default:
-        return AppColors.primary;
+        return AppTheme.armyGreen;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppTheme.background,
         elevation: 0,
         scrolledUnderElevation: 1,
         title: const Text(
           'Pesan dari Admin',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: CircularProgressIndicator(color: AppTheme.armyGreen),
             )
           : _messages.isEmpty
           ? _emptyState()
           : RefreshIndicator(
-              color: AppColors.primary,
+              color: AppTheme.armyGreen,
               onRefresh: () async {
                 final messages = await MessageService.fetchMessages();
                 if (!mounted) return;
@@ -111,13 +111,13 @@ class _MessagesPageState extends State<MessagesPage> {
           Icon(
             Icons.inbox_rounded,
             size: 64,
-            color: AppColors.textMuted.withValues(alpha: 0.3),
+            color: AppTheme.textMuted.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 12),
           const Text(
             'Belum ada pesan',
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: AppTheme.textMuted,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -125,7 +125,7 @@ class _MessagesPageState extends State<MessagesPage> {
           const SizedBox(height: 4),
           const Text(
             'Pesan dari admin akan muncul di sini',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
           ),
         ],
       ),
@@ -155,12 +155,12 @@ class _MessagesPageState extends State<MessagesPage> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isRead
-                ? AppColors.border
-                : AppColors.primary.withValues(alpha: 0.3),
+                ? AppTheme.border
+                : AppTheme.armyGreen.withValues(alpha: 0.3),
           ),
           boxShadow: [
             BoxShadow(
@@ -196,7 +196,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: AppColors.textDark,
+                            color: AppTheme.textDark,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -224,7 +224,7 @@ class _MessagesPageState extends State<MessagesPage> {
                             width: 7,
                             height: 7,
                             decoration: const BoxDecoration(
-                              color: AppColors.success,
+                              color: AppTheme.success,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -238,7 +238,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppColors.textDark,
+                          color: AppTheme.textDark,
                           fontSize: 14,
                           height: 1.4,
                         ),
@@ -258,12 +258,12 @@ class _MessagesPageState extends State<MessagesPage> {
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
                                   height: 110,
-                                  color: AppColors.bg,
+                                  color: AppTheme.surfaceAlt,
                                   alignment: Alignment.center,
                                   child: const Text(
                                     'Foto tidak bisa dimuat',
                                     style: TextStyle(
-                                      color: AppColors.textMuted,
+                                      color: AppTheme.textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -282,9 +282,9 @@ class _MessagesPageState extends State<MessagesPage> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.bg,
+                            color: AppTheme.surfaceAlt,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: AppTheme.border),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -294,7 +294,7 @@ class _MessagesPageState extends State<MessagesPage> {
                                     ? Icons.image_rounded
                                     : Icons.download_rounded,
                                 size: 16,
-                                color: AppColors.primary,
+                                color: AppTheme.armyGreen,
                               ),
                               const SizedBox(width: 6),
                               Flexible(
@@ -302,7 +302,7 @@ class _MessagesPageState extends State<MessagesPage> {
                                   fileName,
                                   style: const TextStyle(
                                     fontSize: 12,
-                                    color: AppColors.primary,
+                                    color: AppTheme.armyGreen,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -319,7 +319,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         const Icon(
                           Icons.schedule_rounded,
                           size: 13,
-                          color: AppColors.textMuted,
+                          color: AppTheme.textMuted,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -327,7 +327,7 @@ class _MessagesPageState extends State<MessagesPage> {
                             '$sentAt - $timeAgo',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMuted,
+                              color: AppTheme.textMuted,
                             ),
                           ),
                         ),
@@ -370,7 +370,7 @@ class _MessagesPageState extends State<MessagesPage> {
         builder: (context, controller) {
           return Container(
             decoration: const BoxDecoration(
-              color: AppColors.surface,
+              color: AppTheme.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: ListView(
@@ -382,7 +382,7 @@ class _MessagesPageState extends State<MessagesPage> {
                     width: 42,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: AppTheme.border,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -407,7 +407,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           Text(
                             sender,
                             style: const TextStyle(
-                              color: AppColors.textDark,
+                              color: AppTheme.textDark,
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
                             ),
@@ -416,7 +416,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           Text(
                             sentAt,
                             style: const TextStyle(
-                              color: AppColors.textMuted,
+                              color: AppTheme.textMuted,
                               fontSize: 12,
                             ),
                           ),
@@ -430,7 +430,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   Text(
                     content,
                     style: const TextStyle(
-                      color: AppColors.textDark,
+                      color: AppTheme.textDark,
                       fontSize: 15,
                       height: 1.55,
                     ),
@@ -441,7 +441,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   Text(
                     imageName,
                     style: const TextStyle(
-                      color: AppColors.textMuted,
+                      color: AppTheme.textMuted,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -458,11 +458,11 @@ class _MessagesPageState extends State<MessagesPage> {
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => Container(
                           height: 180,
-                          color: AppColors.bg,
+                          color: AppTheme.surfaceAlt,
                           alignment: Alignment.center,
                           child: const Text(
                             'Foto tidak bisa dimuat',
-                            style: TextStyle(color: AppColors.textMuted),
+                            style: TextStyle(color: AppTheme.textMuted),
                           ),
                         ),
                       ),
@@ -477,9 +477,9 @@ class _MessagesPageState extends State<MessagesPage> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.bg,
+                        color: AppTheme.surfaceAlt,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Row(
                         children: [
@@ -487,21 +487,21 @@ class _MessagesPageState extends State<MessagesPage> {
                             type == 'image'
                                 ? Icons.image_rounded
                                 : Icons.attach_file_rounded,
-                            color: AppColors.primary,
+                            color: AppTheme.armyGreen,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               fileName,
                               style: const TextStyle(
-                                color: AppColors.primary,
+                                color: AppTheme.armyGreen,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                           const Icon(
                             Icons.open_in_new_rounded,
-                            color: AppColors.textMuted,
+                            color: AppTheme.textMuted,
                             size: 18,
                           ),
                         ],

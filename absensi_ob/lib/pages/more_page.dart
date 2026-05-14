@@ -8,7 +8,7 @@ import 'package:absensi_ob/pages/user_guide_page.dart';
 import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
 
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 
 class MorePage extends StatefulWidget {
   final String name;
@@ -57,18 +57,18 @@ class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppTheme.background,
         elevation: 0,
         title: const Text(
           'More',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -82,7 +82,7 @@ class _MorePageState extends State<MorePage> {
           _SectionTitle('Akun & Presensi'),
           _MenuTile(
             icon: Icons.manage_accounts_rounded,
-            color: AppColors.accent,
+            color: AppTheme.accentOrange,
             title: 'Profile Settings',
             subtitle: 'Ubah nama, nomor HP, dan password akun.',
             onTap: () async {
@@ -103,7 +103,7 @@ class _MorePageState extends State<MorePage> {
           ),
           _MenuTile(
             icon: Icons.face_retouching_natural_rounded,
-            color: AppColors.primary,
+            color: AppTheme.armyGreen,
             title: 'Registrasi ulang wajah',
             subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
             onTap: () {
@@ -113,7 +113,7 @@ class _MorePageState extends State<MorePage> {
           ),
           _MenuTile(
             icon: Icons.payments_rounded,
-            color: AppColors.success,
+            color: AppTheme.success,
             title: 'Pengajuan Kasbon',
             subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
             onTap: () {
@@ -186,13 +186,13 @@ class _MorePageState extends State<MorePage> {
           const SizedBox(height: 18),
           _MenuTile(
             icon: Icons.logout_rounded,
-            color: AppColors.error,
+            color: AppTheme.error,
             title: 'Logout',
             subtitle: 'Keluar dari akun karyawan di perangkat ini.',
-              onTap: () async {
-                await TokenStorage.clearToken();
-                if (!context.mounted) return;
-                Navigator.pushAndRemoveUntil(
+            onTap: () async {
+              await TokenStorage.clearToken();
+              if (!context.mounted) return;
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginPage()),
                 (_) => false,
@@ -227,7 +227,7 @@ class _ProfileHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -244,9 +244,7 @@ class _ProfileHeader extends StatelessWidget {
             height: 58,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(0xFF8B7CF6), Color(0xFF4F6AF0)],
-              ),
+              gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
             ),
             clipBehavior: Clip.antiAlias,
             child: imageProvider != null
@@ -272,7 +270,7 @@ class _ProfileHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: AppColors.textDark,
+                    color: AppTheme.textDark,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -281,7 +279,7 @@ class _ProfileHeader extends StatelessWidget {
                 Text(
                   phoneNumber,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 13,
                   ),
                 ),
@@ -306,7 +304,7 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         text,
         style: const TextStyle(
-          color: AppColors.textDark,
+          color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 15,
         ),
@@ -335,9 +333,9 @@ class _MenuTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: ListTile(
         onTap: onTap,
@@ -354,7 +352,7 @@ class _MenuTile extends StatelessWidget {
         title: Text(
           title,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
             fontSize: 14,
           ),
@@ -364,7 +362,7 @@ class _MenuTile extends StatelessWidget {
           child: Text(
             subtitle,
             style: const TextStyle(
-              color: AppColors.textMuted,
+              color: AppTheme.textMuted,
               fontSize: 12,
               height: 1.3,
             ),
@@ -372,7 +370,7 @@ class _MenuTile extends StatelessWidget {
         ),
         trailing: const Icon(
           Icons.chevron_right_rounded,
-          color: AppColors.textMuted,
+          color: AppTheme.textMuted,
         ),
       ),
     );

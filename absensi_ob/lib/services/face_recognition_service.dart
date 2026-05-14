@@ -45,6 +45,13 @@ class FaceRecognitionService {
   static Future<Map<String, dynamic>> registerFaceMultiple({
     required List<File> imageFiles,
   }) async {
+    if (kDebugMode && AppConstants.devAttendanceBypass) {
+      return {
+        'success': true,
+        'message': 'Mode emulator: registrasi wajah dilewati.',
+      };
+    }
+
     final base64Images = <String>[];
 
     for (final imageFile in imageFiles) {
@@ -72,6 +79,15 @@ class FaceRecognitionService {
   static Future<Map<String, dynamic>> verifyFace({
     required File imageFile,
   }) async {
+    if (kDebugMode && AppConstants.devAttendanceBypass) {
+      return {
+        'success': true,
+        'match': true,
+        'confidence': 100,
+        'message': 'Mode emulator: wajah otomatis terverifikasi.',
+      };
+    }
+
     if (!await _hasFace(imageFile)) {
       return {
         'success': false,

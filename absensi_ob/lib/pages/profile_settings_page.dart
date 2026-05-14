@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
@@ -118,7 +118,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   void _showPhotoSourceSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -133,7 +133,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   width: 42,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: AppTheme.border,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -207,7 +207,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(fontSize: 13)),
-        backgroundColor: AppColors.success,
+        backgroundColor: AppTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
@@ -218,15 +218,15 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
         title: const Text(
           'Profile Settings',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -387,7 +387,7 @@ class _ProfileSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -404,7 +404,7 @@ class _ProfileSummary extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 32,
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppTheme.armyGreen,
                 backgroundImage: imageProvider,
                 child: imageProvider == null
                     ? Text(
@@ -427,9 +427,9 @@ class _ProfileSummary extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppTheme.armyGreen,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.surface, width: 3),
+                      border: Border.all(color: AppTheme.surface, width: 3),
                     ),
                     child: const Icon(
                       Icons.photo_camera_rounded,
@@ -451,7 +451,7 @@ class _ProfileSummary extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: AppColors.textDark,
+                    color: AppTheme.textDark,
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
                   ),
@@ -460,7 +460,7 @@ class _ProfileSummary extends StatelessWidget {
                 Text(
                   phoneNumber,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 13,
                   ),
                 ),
@@ -493,22 +493,22 @@ class _PhotoSourceTile extends StatelessWidget {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppTheme.armyGreenLight,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 22),
+        child: Icon(icon, color: AppTheme.armyGreen, size: 22),
       ),
       title: Text(
         title,
         style: const TextStyle(
-          color: AppColors.textDark,
+          color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 14,
         ),
       ),
       trailing: const Icon(
         Icons.chevron_right_rounded,
-        color: AppColors.textMuted,
+        color: AppTheme.textMuted,
       ),
     );
   }
@@ -525,9 +525,9 @@ class _SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,7 +535,7 @@ class _SectionCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.textDark,
+              color: AppTheme.textDark,
               fontWeight: FontWeight.w800,
               fontSize: 14,
             ),
@@ -560,7 +560,7 @@ class _PasswordToggle extends StatelessWidget {
       onPressed: onPressed,
       icon: Icon(
         obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-        color: AppColors.textMuted,
+        color: AppTheme.textMuted,
       ),
     );
   }
@@ -598,9 +598,9 @@ class _PrimaryButton extends StatelessWidget {
             : Icon(icon, size: 19),
         label: Text(label),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppTheme.armyGreen,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.55),
+          disabledBackgroundColor: AppTheme.armyGreen.withValues(alpha: 0.55),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

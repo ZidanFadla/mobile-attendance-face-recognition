@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import '../services/api_service.dart';
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
 
@@ -50,6 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
           context: context,
           barrierDismissible: false,
           builder: (ctx) => Dialog(
+            backgroundColor: AppTheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -62,12 +63,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: AppTheme.armyGreenLight,
                       borderRadius: BorderRadius.circular(32),
                     ),
                     child: const Icon(
                       Icons.check_rounded,
-                      color: Color(0xFF10B981),
+                      color: AppTheme.success,
                       size: 36,
                     ),
                   ),
@@ -77,7 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -86,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textMuted,
+                      color: AppTheme.textMuted,
                       height: 1.5,
                     ),
                   ),
@@ -102,7 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppTheme.success,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -136,50 +137,12 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       body: Stack(
         children: [
-          // Background decorative circles
-          Positioned(
-            top: -80,
-            right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 60,
-            right: 30,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.accent.withValues(alpha: 0.07),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -60,
-            left: -40,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -194,14 +157,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         height: 72,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                            colors: [AppTheme.armyGreen, AppTheme.accentOrange],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.border),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
+                              color: AppTheme.armyGreen.withValues(alpha: 0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -230,7 +194,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
+                        color: AppTheme.textDark,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -240,7 +204,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textMuted,
+                        color: AppTheme.textMuted,
                         height: 1.4,
                       ),
                     ),
@@ -249,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     // Form Card
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -259,7 +223,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
                           AppFormField(
@@ -310,7 +274,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: AppColors.textMuted,
+                                color: AppTheme.textMuted,
                                 size: 20,
                               ),
                               onPressed: () => setState(
@@ -339,17 +303,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         gradient: _isLoading
                             ? null
                             : const LinearGradient(
-                                colors: [AppColors.primary, Color(0xFF6366F1)],
+                                colors: AppTheme.gradientArmyGreen,
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
-                        color: _isLoading ? AppColors.border : null,
+                        color: _isLoading ? AppTheme.border : null,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: _isLoading
                             ? []
                             : [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(
+                                  color: AppTheme.armyGreen.withValues(
                                     alpha: 0.35,
                                   ),
                                   blurRadius: 16,
@@ -372,7 +336,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 height: 22,
                                 width: 22,
                                 child: CircularProgressIndicator(
-                                  color: AppColors.primary,
+                                  color: AppTheme.armyGreen,
                                   strokeWidth: 2.5,
                                 ),
                               )
@@ -396,7 +360,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const Text(
                           'Sudah punya akun? ',
                           style: TextStyle(
-                            color: AppColors.textMuted,
+                            color: AppTheme.textMuted,
                             fontSize: 13,
                           ),
                         ),
@@ -415,7 +379,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             decoration: const BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.primary,
+                                  color: AppTheme.armyGreen,
                                   width: 1.5,
                                 ),
                               ),
@@ -423,7 +387,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             child: const Text(
                               'Login',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: AppTheme.armyGreen,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
                               ),

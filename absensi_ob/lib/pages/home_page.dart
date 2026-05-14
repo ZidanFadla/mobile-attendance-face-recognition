@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'face_scan_page.dart';
 import '../controllers/attendance_controller.dart';
 import '../core/app_constants.dart';
+import '../core/app_theme.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
@@ -42,6 +43,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Animation<double> _pulseAnimation;
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
+
+  // ── Dark theme colors matching screenshot ──
+  static const Color _bgDark = Color(0xFF0E2140);
+  static const Color _cardDark = Color(0xFF1A3A5C);
+  static const Color _btnGreen = Color(0xFF2ECC8A);
+  static const Color _btnGreenDark = Color(0xFF1FAF72);
+  static const Color _btnRed = Color(0xFFE53935);
+  static const Color _textWhite = Colors.white;
+  static const Color _textMuted = Color(0xFF7BAFD4);
+  static const Color _dividerColor = Color(0xFF1E4060);
+  static const Color _ringColor = Color(0xFF2ECC8A);
 
   @override
   void initState() {
@@ -174,10 +186,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: _cardDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Registrasi Wajah'),
+        title: const Text(
+          'Registrasi Wajah',
+          style: TextStyle(color: _textWhite),
+        ),
         content: const Text(
           'Wajah kamu belum terdaftar. Silakan registrasi wajah terlebih dahulu untuk bisa absen.',
+          style: TextStyle(color: _textMuted),
         ),
         actions: [
           ElevatedButton(
@@ -186,7 +203,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               _onRegisterFace();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C63FF),
+              backgroundColor: _btnGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -206,6 +223,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
+        backgroundColor: _cardDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -221,13 +239,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Text(
                 '✅ Foto $photoNumber/3 berhasil!\nSiap untuk foto berikutnya.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 15, color: _textWhite),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF22C55E),
+                  backgroundColor: _btnGreen,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -248,6 +266,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
+        backgroundColor: _cardDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -265,7 +284,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 15, color: _textWhite),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -301,6 +320,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             color: Colors.black54,
             child: Center(
               child: Dialog(
+                backgroundColor: _cardDark,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -309,7 +329,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircularProgressIndicator(color: Color(0xFF6C63FF)),
+                      const CircularProgressIndicator(color: _btnGreen),
                       const SizedBox(height: 40),
                       Text(
                         _controller.loadingMessage,
@@ -317,6 +337,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
+                          color: _textWhite,
                         ),
                       ),
                     ],
@@ -330,69 +351,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildMainScaffold() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    // Gradient covers ~62% of screen like the reference
-    final gradientHeight = screenHeight * 0.62;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4FF),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ── Gradient area + overlapping white card ──
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Gradient background
-                _buildGradientBackground(gradientHeight),
-                // Content on gradient
-                SafeArea(
-                  bottom: false,
-                  child: Column(
-                    children: [
-                      _buildAppBar(),
-                      const SizedBox(height: 24),
-                      _buildClock(),
-                      const SizedBox(height: 32),
-                      _buildClockButton(),
-                      const SizedBox(height: 20),
-                      _buildLocationBadge(),
-                    ],
-                  ),
-                ),
-                // White card overlapping the gradient
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: gradientHeight - 50,
-                  child: _buildStatusCard(),
-                ),
-              ],
-            ),
-            // Extra space for the overlapping card
-            const SizedBox(height: 60),
-            // Photo sections (scrollable below)
-            _buildPhotoSections(),
-          ],
+      backgroundColor: _bgDark,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAppBar(),
+              _buildDateBadge(),
+              _buildBigClock(),
+              _buildClockButton(),
+              const SizedBox(height: 20),
+              _buildLocationBadge(),
+              const SizedBox(height: 20),
+              _buildStatusCard(),
+              const SizedBox(height: 10), // space for bottom nav
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  // ─── Gradient Background ──────────────────────────────────
-
-  Widget _buildGradientBackground(double height) {
-    return Container(
-      height: height,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF8B7CF6), Color(0xFF6B8CF0), Color(0xFF5A9AEF)],
-        ),
-      ),
     );
   }
 
@@ -400,34 +379,42 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildAppBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Company / user name
-          Text(
-            _employeeName.toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0,
-            ),
-          ),
-          // Action icons
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 12),
-              _buildAppBarIcon(Icons.logout_rounded, () async {
-                await TokenStorage.clearToken();
-                if (!mounted) return;
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                );
-              }),
+              const Text(
+                'SELAMAT PAGI',
+                style: TextStyle(
+                  color: _textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _employeeName,
+                style: const TextStyle(
+                  color: _textWhite,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ],
           ),
+          _buildAppBarIcon(Icons.logout_rounded, () async {
+            await TokenStorage.clearToken();
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          }),
         ],
       ),
     );
@@ -437,42 +424,89 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
+          color: _cardDark,
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: _textMuted, size: 20),
       ),
     );
   }
 
-  // ─── Clock Display ────────────────────────────────────────
+  // ─── Date Badge ───────────────────────────────────────────
 
-  Widget _buildClock() {
-    return Column(
-      children: [
-        Text(
-          _currentTime,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 64,
-            fontWeight: FontWeight.w200,
-            letterSpacing: 6,
-            height: 1.0,
-          ),
+  Widget _buildDateBadge() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: _cardDark,
+          borderRadius: BorderRadius.circular(20),
         ),
-        const SizedBox(height: 8),
-        Text(
-          _currentDate,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: _btnGreen,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _currentDate,
+              style: const TextStyle(
+                color: _textMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  // ─── Big Clock Display ────────────────────────────────────
+
+  Widget _buildBigClock() {
+    // Split time into hours and minutes for the stacked display in screenshot
+    final parts = _currentTime.split(':');
+    final hours = parts.isNotEmpty ? parts[0] : '--';
+    final minutes = parts.length > 1 ? parts[1] : '--';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$hours:',
+            style: const TextStyle(
+              color: _textWhite,
+              fontSize: 72,
+              fontWeight: FontWeight.w900,
+              height: 0.95,
+              letterSpacing: -2,
+            ),
+          ),
+          Text(
+            minutes,
+            style: const TextStyle(
+              color: _textWhite,
+              fontSize: 72,
+              fontWeight: FontWeight.w900,
+              height: 0.95,
+              letterSpacing: -2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -496,181 +530,226 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ? _onClockOut
         : _onClockIn;
 
-    final List<Color> gradientColors = allDone
-        ? [const Color(0xFF9CA3AF), const Color(0xFF6B7280)]
+    final Color btnColor = allDone
+        ? const Color(0xFF4A5568)
         : showClockOut
-        ? [const Color(0xFFEF4444), const Color(0xFFDC2626)]
-        : [const Color(0xFFB794F6), const Color(0xFF9B6DFF)];
+        ? _btnRed
+        : _btnGreen;
 
-    final Color glowColor = allDone
-        ? Colors.grey
+    final Color btnColorDark = allDone
+        ? const Color(0xFF3A4555)
         : showClockOut
-        ? const Color(0xFFEF4444)
-        : const Color(0xFFA78BFA);
+        ? const Color(0xFF6B2A2A)
+        : _btnGreenDark;
 
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        final scale = allDone ? 1.0 : _pulseAnimation.value;
-        return Transform.scale(
-          scale: scale,
-          child: GestureDetector(
-            onTap: onTap,
-            child: AnimatedBuilder(
-              animation: _ringAnimation,
-              builder: (context, child) {
-                return Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(
-                        alpha: _ringAnimation.value * 0.5,
-                      ),
-                      width: 3,
-                    ),
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 145,
-                      height: 145,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: gradientColors,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: glowColor.withValues(alpha: 0.4),
-                            blurRadius: 30,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            allDone
-                                ? Icons.check_circle_outline
-                                : showClockOut
-                                ? Icons.logout_rounded
-                                : Icons.fingerprint,
-                            color: Colors.white,
-                            size: 44,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            label,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2,
+    final IconData btnIcon = allDone
+        ? Icons.check_circle_outline
+        : showClockOut
+        ? Icons.logout_rounded
+        : Icons.crop_square_rounded; // matches square icon in screenshot
+
+    return Center(
+      child: AnimatedBuilder(
+        animation: _pulseAnimation,
+        builder: (context, child) {
+          final scale = allDone ? 1.0 : _pulseAnimation.value;
+          return Transform.scale(
+            scale: scale,
+            child: GestureDetector(
+              onTap: onTap,
+              child: AnimatedBuilder(
+                animation: _ringAnimation,
+                builder: (context, child) {
+                  return SizedBox(
+                    width: 330,
+                    height: 330,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outermost dashed ring
+                        Container(
+                          width: 230,
+                          height: 230,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _ringColor.withValues(
+                                alpha: _ringAnimation.value * 0.3,
+                              ),
+                              width: 1,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        // Middle ring
+                        Container(
+                          width: 176,
+                          height: 176,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _ringColor.withValues(
+                                alpha: _ringAnimation.value * 0.5,
+                              ),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        // Inner ring (subtle glow arc)
+                        Container(
+                          width: 158,
+                          height: 158,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _ringColor.withValues(alpha: 0.25),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        // Main button circle
+                        Container(
+                          width: 160,
+                          height: 160,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              center: Alignment.topLeft,
+                              radius: 1.2,
+                              colors: [btnColor, btnColorDark],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: btnColor.withValues(alpha: 0.35),
+                                blurRadius: 28,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(btnIcon, color: Colors.white, size: 36),
+                              const SizedBox(height: 8),
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   // ─── Location Badge ───────────────────────────────────────
 
   Widget _buildLocationBadge() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.location_on, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              _controller.alamatMasuk ?? 'Menunggu lokasi...',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.95),
-                fontSize: 13,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: _cardDark,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Color(0xFF22C55E),
+                shape: BoxShape.circle,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            const Icon(Icons.location_on, color: _textMuted, size: 16),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _controller.alamatMasuk ?? 'Menunggu lokasi...',
+                style: const TextStyle(
+                  color: _textMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ─── Status Card (white, overlaps gradient) ───────────────
+  // ─── Status Card (dark) ───────────────────────────────────
 
   Widget _buildStatusCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatusItem(
-            icon: Icons.login_rounded,
-            iconColor: const Color(0xFF22C55E),
-            iconBg: const Color(0xFFDCFCE7),
-            time: _controller.clockInTime,
-            label: 'Clock In',
-          ),
-          _buildStatusDivider(),
-          _buildStatusItem(
-            icon: Icons.logout_rounded,
-            iconColor: const Color(0xFFEF4444),
-            iconBg: const Color(0xFFFEE2E2),
-            time: _controller.clockOutTime,
-            label: 'Clock Out',
-          ),
-          _buildStatusDivider(),
-          _buildStatusItem(
-            icon: Icons.timer_outlined,
-            iconColor: const Color(0xFF6C63FF),
-            iconBg: const Color(0xFFEDE9FE),
-            time: _calculateDuration(),
-            label: 'Durasi',
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          color: _cardDark,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStatusItem(
+              icon: Icons.login_rounded,
+              iconBgColor: _btnGreenDark.withValues(alpha: 0.5),
+              iconColor: _btnGreen,
+              time: _controller.clockInTime,
+              label: 'Clock In',
+              accentColor: const Color(0xFF22C55E),
+            ),
+            _buildStatusDivider(),
+            _buildStatusItem(
+              icon: Icons.logout_rounded,
+              iconBgColor: const Color(0xFF5A2020),
+              iconColor: const Color(0xFFEF4444),
+              time: _controller.clockOutTime,
+              label: 'Clock Out',
+              accentColor: const Color(0xFFEF4444),
+            ),
+            _buildStatusDivider(),
+            _buildStatusItem(
+              icon: Icons.timer_outlined,
+              iconBgColor: const Color(0xFF1A3A50),
+              iconColor: const Color(0xFF60A5FA),
+              time: _calculateDuration(),
+              label: 'Durasi',
+              accentColor: const Color(0xFF60A5FA),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStatusItem({
     required IconData icon,
+    required Color iconBgColor,
     required Color iconColor,
-    required Color iconBg,
     required String time,
     required String label,
+    required Color accentColor,
   }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -678,24 +757,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           width: 44,
           height: 44,
-          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-          child: Icon(icon, color: iconColor, size: 22),
+          decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
+          child: Icon(icon, color: iconColor, size: 20),
         ),
         const SizedBox(height: 10),
         Text(
           time,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: iconColor,
+            color: accentColor,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade500,
+          style: const TextStyle(
+            fontSize: 11,
+            color: _textMuted,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -704,7 +784,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildStatusDivider() {
-    return Container(width: 1, height: 60, color: Colors.grey.shade200);
+    return Container(width: 1, height: 56, color: _dividerColor);
   }
 
   String _calculateDuration() {
@@ -730,217 +810,100 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return '--:--';
   }
 
-  // ─── Photo Sections ───────────────────────────────────────
-
-  Widget _buildPhotoSections() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          if (_controller.photoMasuk != null) ...[
-            _buildPhotoCard(
-              label: 'Foto Absen Masuk',
-              photo: _controller.photoMasuk!,
-              alamat: _controller.alamatMasuk,
-              timestamp: _controller.timestampMasuk,
-              color: const Color(0xFF22C55E),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (_controller.photoPulang != null) ...[
-            _buildPhotoCard(
-              label: 'Foto Absen Pulang',
-              photo: _controller.photoPulang!,
-              alamat: _controller.alamatPulang,
-              timestamp: _controller.timestampPulang,
-              color: const Color(0xFFEF4444),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoCard({
-    required String label,
-    required File photo,
-    String? alamat,
-    DateTime? timestamp,
-    required Color color,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  color: Color(0xFF1A1D3A),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              photo,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
-              const SizedBox(width: 4),
-              Text(
-                timestamp != null
-                    ? DateFormat('dd-MM-yyyy HH:mm').format(timestamp)
-                    : '-',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-              ),
-            ],
-          ),
-          if (alamat != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    alamat,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   // ─── Bottom Navigation Bar ────────────────────────────────
 
   Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1C28),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentNavIndex,
-          onTap: (index) async {
-            if (index == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => HistoryPage(
-                    records: SessionManager.getRecords(widget.name),
-                  ),
-                ),
-              );
-            } else if (index == 2) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MessagesPage()),
-              );
-              if (!mounted) return;
-              setState(() => _currentNavIndex = 0);
-            } else if (index == 3) {
-              final updatedEmployee =
-                  await Navigator.push<Map<String, dynamic>>(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BottomNavigationBar(
+              currentIndex: _currentNavIndex,
+              onTap: (index) async {
+                if (index == 1) {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => MorePage(
-                        name: _employeeName,
-                        phoneNumber: _employeePhoneNumber,
-                        profilePhotoUrl: _employeeProfilePhotoUrl,
-                        onRegisterFace: _onRegisterFace,
+                      builder: (_) => HistoryPage(
                         records: SessionManager.getRecords(widget.name),
                       ),
                     ),
                   );
-              if (!mounted) return;
-              if (updatedEmployee != null) {
-                _applyUpdatedEmployee(updatedEmployee);
-              }
-              setState(() => _currentNavIndex = 0);
-            } else {
-              setState(() => _currentNavIndex = index);
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF6C63FF),
-          unselectedItemColor: const Color(0xFFADB5BD),
-          selectedFontSize: 12,
-          unselectedFontSize: 11,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
+                } else if (index == 2) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MessagesPage()),
+                  );
+
+                  if (!mounted) return;
+                  setState(() => _currentNavIndex = 0);
+                } else if (index == 3) {
+                  final updatedEmployee =
+                      await Navigator.push<Map<String, dynamic>>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MorePage(
+                            name: _employeeName,
+                            phoneNumber: _employeePhoneNumber,
+                            profilePhotoUrl: _employeeProfilePhotoUrl,
+                            onRegisterFace: _onRegisterFace,
+                            records: SessionManager.getRecords(widget.name),
+                          ),
+                        ),
+                      );
+
+                  if (!mounted) return;
+
+                  if (updatedEmployee != null) {
+                    _applyUpdatedEmployee(updatedEmployee);
+                  }
+
+                  setState(() => _currentNavIndex = 0);
+                } else {
+                  setState(() => _currentNavIndex = index);
+                }
+              },
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: const Color(0xFF0F1C28),
+              selectedItemColor: Colors.white,
+              unselectedItemColor: _textMuted,
+              selectedFontSize: 12,
+              unselectedFontSize: 11,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
+              elevation: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today_rounded),
+                  label: 'Absensi',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_outlined),
+                  label: 'Notifikasi',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.more_horiz),
+                  label: 'More',
+                ),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_rounded),
-              label: 'Attendance',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_outlined),
-              label: 'Notifications',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz),
-              label: 'More',
-            ),
-          ],
+          ),
         ),
       ),
     );

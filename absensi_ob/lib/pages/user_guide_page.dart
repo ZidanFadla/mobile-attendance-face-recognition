@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 
 class UserGuidePage extends StatelessWidget {
   const UserGuidePage({super.key});
@@ -8,15 +8,15 @@ class UserGuidePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
         title: const Text(
           'Panduan Pengguna',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -117,7 +117,7 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -129,7 +129,7 @@ class _HeaderCard extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          _IconBadge(icon: Icons.menu_book_rounded, color: AppColors.primary),
+          _IconBadge(icon: Icons.menu_book_rounded, color: AppTheme.armyGreen),
           SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -138,7 +138,7 @@ class _HeaderCard extends StatelessWidget {
                 Text(
                   'Panduan Aplikasi Absensi',
                   style: TextStyle(
-                    color: AppColors.textDark,
+                    color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                   ),
@@ -147,7 +147,7 @@ class _HeaderCard extends StatelessWidget {
                 Text(
                   'Ringkasan langkah penggunaan fitur utama untuk karyawan.',
                   style: TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -172,9 +172,9 @@ class _GuideSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +182,7 @@ class _GuideSection extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.textDark,
+              color: AppTheme.textDark,
               fontWeight: FontWeight.w800,
               fontSize: 14,
             ),
@@ -215,7 +215,7 @@ class _GuideStep extends StatelessWidget {
         children: [
           _IconBadge(
             icon: icon,
-            color: AppColors.primary,
+            color: AppTheme.armyGreen,
             size: 34,
             iconSize: 18,
           ),
@@ -227,7 +227,7 @@ class _GuideStep extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: AppColors.textDark,
+                    color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
                   ),
@@ -236,7 +236,7 @@ class _GuideStep extends StatelessWidget {
                 Text(
                   description,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.4,
                   ),

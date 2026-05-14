@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../core/app_colors.dart';
+import '../core/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/app_snackbar.dart';
 
@@ -63,25 +63,25 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: const IconThemeData(color: AppTheme.textDark),
         title: Text(
           _title,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: CircularProgressIndicator(color: AppTheme.armyGreen),
             )
           : RefreshIndicator(
-              color: AppColors.primary,
+              color: AppTheme.armyGreen,
               onRefresh: _loadHistory,
               child: _items.isEmpty
                   ? _emptyState()
@@ -111,14 +111,14 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
         Icon(
           _isLeave ? Icons.event_available_rounded : Icons.payments_rounded,
           size: 64,
-          color: AppColors.textMuted.withValues(alpha: 0.28),
+          color: AppTheme.textMuted.withValues(alpha: 0.28),
         ),
         const SizedBox(height: 14),
         Text(
           _isLeave ? 'Belum ada riwayat cuti' : 'Belum ada riwayat kasbon',
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontSize: 16,
             fontWeight: FontWeight.w800,
           ),
@@ -127,7 +127,7 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
         const Text(
           'Pengajuan yang sudah dikirim akan muncul di sini.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
         ),
       ],
     );
@@ -184,9 +184,9 @@ class _SummaryHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         children: [
@@ -236,7 +236,7 @@ class _MoneyRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
         ),
         const Spacer(),
         Text(
@@ -246,7 +246,7 @@ class _MoneyRow extends StatelessWidget {
             decimalDigits: 0,
           ).format(amount),
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
             fontSize: 13,
           ),
@@ -268,7 +268,7 @@ class _StatBox extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.bg,
+          color: AppTheme.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -276,7 +276,7 @@ class _StatBox extends StatelessWidget {
             Text(
               value,
               style: const TextStyle(
-                color: AppColors.textDark,
+                color: AppTheme.textDark,
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
               ),
@@ -286,7 +286,7 @@ class _StatBox extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 10),
             ),
           ],
         ),
@@ -318,9 +318,9 @@ class _HistoryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,7 +344,7 @@ class _HistoryCard extends StatelessWidget {
                     Text(
                       _title,
                       style: const TextStyle(
-                        color: AppColors.textDark,
+                        color: AppTheme.textDark,
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
                       ),
@@ -353,7 +353,7 @@ class _HistoryCard extends StatelessWidget {
                     Text(
                       _subtitle,
                       style: const TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppTheme.textMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -367,7 +367,7 @@ class _HistoryCard extends StatelessWidget {
           Text(
             item['reason']?.toString() ?? '-',
             style: const TextStyle(
-              color: AppColors.textDark,
+              color: AppTheme.textDark,
               fontSize: 13,
               height: 1.45,
             ),
@@ -380,15 +380,15 @@ class _HistoryCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.bg,
+                  color: AppTheme.surfaceAlt,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.attach_file_rounded,
-                      color: AppColors.primary,
+                      color: AppTheme.armyGreen,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
@@ -399,7 +399,7 @@ class _HistoryCard extends StatelessWidget {
                             : 'Buka lampiran',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: AppTheme.armyGreen,
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                         ),
@@ -407,7 +407,7 @@ class _HistoryCard extends StatelessWidget {
                     ),
                     const Icon(
                       Icons.open_in_new_rounded,
-                      color: AppColors.textMuted,
+                      color: AppTheme.textMuted,
                       size: 16,
                     ),
                   ],
@@ -419,7 +419,7 @@ class _HistoryCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               'Catatan admin: ${item['admin_note']}',
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
             ),
           ],
         ],
@@ -472,11 +472,11 @@ class _HistoryCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     return switch (status) {
-      'approved' => AppColors.success,
-      'rejected' => AppColors.error,
+      'approved' => AppTheme.success,
+      'rejected' => AppTheme.error,
       'disbursed' => Colors.blue,
       'installment' => Colors.indigo,
-      'paid' => AppColors.textMuted,
+      'paid' => AppTheme.textMuted,
       _ => const Color(0xFFF59E0B),
     };
   }
@@ -501,11 +501,11 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      'approved' => AppColors.success,
-      'rejected' => AppColors.error,
+      'approved' => AppTheme.success,
+      'rejected' => AppTheme.error,
       'disbursed' => Colors.blue,
       'installment' => Colors.indigo,
-      'paid' => AppColors.textMuted,
+      'paid' => AppTheme.textMuted,
       _ => const Color(0xFFF59E0B),
     };
     final label = switch (status) {

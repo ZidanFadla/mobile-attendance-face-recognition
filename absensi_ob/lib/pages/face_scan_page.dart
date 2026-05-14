@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:io';
 import 'package:image/image.dart' as img;
+import '../core/app_theme.dart';
 
 class FaceScanPage extends StatefulWidget {
   final String? instruction; // instruksi foto (untuk registrasi multi foto)
@@ -72,7 +73,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
         // Terlalu gelap
         setState(() {
           _brightnessWarning =
-              '⚠️ Cahaya terlalu gelap! Pindah ke tempat yang lebih terang.';
+              'Cahaya terlalu gelap. Pindah ke tempat yang lebih terang.';
           _isProcessing = false;
         });
         return;
@@ -82,7 +83,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
         // Terlalu terang/silau
         setState(() {
           _brightnessWarning =
-              '⚠️ Cahaya terlalu terang/silau! Hindari cahaya langsung.';
+              'Cahaya terlalu terang/silau. Hindari cahaya langsung.';
           _isProcessing = false;
         });
         return;
@@ -122,7 +123,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              color: Colors.indigo,
+              color: AppTheme.armyGreen,
               child: Text(
                 widget.instruction!,
                 textAlign: TextAlign.center,
@@ -168,7 +169,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             color: Colors.black,
             child: const Text(
-              '💡 Pastikan wajah terlihat jelas dan cahaya cukup',
+              'Pastikan wajah terlihat jelas dan cahaya cukup',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
@@ -182,7 +183,7 @@ class _FaceScanPageState extends State<FaceScanPage> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Colors.indigo,
+                  backgroundColor: AppTheme.armyGreen,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
