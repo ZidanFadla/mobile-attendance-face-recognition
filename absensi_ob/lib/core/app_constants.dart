@@ -3,8 +3,12 @@ class AppConstants {
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.100.17:8000/api',
+    defaultValue: 'https://mobile-attendance-face-recognition-production.up.railway.app',
   );
+  // static const String baseUrl = String.fromEnvironment(
+  //   'API_BASE_URL',
+  //   defaultValue: 'http://192.168.100.17:8000/api',
+  // );
 
   // static const String baseUrl = String.fromEnvironment(
   //   'API_BASE_URL',
