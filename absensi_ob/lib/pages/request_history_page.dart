@@ -134,15 +134,35 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
   }
 
   Future<void> _openAttachment(String url) async {
-    final opened = await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!opened && mounted) {
-      showErrorSnackbar(context, 'Lampiran tidak bisa dibuka.');
+    final lowerUrl = url.toLowerCase();
+    final isImage = lowerUrl.endsWith('.jpg') ||
+        lowerUrl.endsWith('.jpeg') ||
+        lowerUrl.endsWith('.png') ||
+        lowerUrl.endsWith('.webp');
+
+    if (isImage) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        useSafeArea: false,
+        builder: (_) => _ImagePreviewDialog(imageUrl: url),
+      );
+    } else {
+      // PDF / file lain → tetap buka di browser
+      final opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && mounted) {
+        showErrorSnackbar(context, 'Lampiran tidak bisa dibuka.');
+      }
     }
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  Summary Header
+// ═══════════════════════════════════════════════════════════════
 
 class _SummaryHeader extends StatelessWidget {
   final RequestHistoryType type;
@@ -295,6 +315,10 @@ class _StatBox extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  History Card
+// ═══════════════════════════════════════════════════════════════
+
 class _HistoryCard extends StatelessWidget {
   final Map<String, dynamic> item;
   final RequestHistoryType type;
@@ -374,45 +398,10 @@ class _HistoryCard extends StatelessWidget {
           ),
           if (attachmentUrl != null && attachmentUrl.isNotEmpty) ...[
             const SizedBox(height: 10),
-            InkWell(
+            _AttachmentPreview(
+              url: attachmentUrl,
+              name: attachmentName,
               onTap: () => onOpenAttachment(attachmentUrl),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceAlt,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.attach_file_rounded,
-                      color: AppTheme.armyGreen,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        attachmentName?.isNotEmpty == true
-                            ? attachmentName!
-                            : 'Buka lampiran',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppTheme.armyGreen,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.open_in_new_rounded,
-                      color: AppTheme.textMuted,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
           if ((item['admin_note']?.toString() ?? '').isNotEmpty) ...[
@@ -493,6 +482,10 @@ class _HistoryCard extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  Status Chip
+// ═══════════════════════════════════════════════════════════════
+
 class _StatusChip extends StatelessWidget {
   final String status;
 
@@ -530,6 +523,220 @@ class _StatusChip extends StatelessWidget {
           fontWeight: FontWeight.w800,
           fontSize: 11,
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Attachment Preview - Thumbnail dengan tap to open
+// ═══════════════════════════════════════════════════════════════
+
+class _AttachmentPreview extends StatelessWidget {
+  final String url;
+  final String? name;
+  final VoidCallback onTap;
+
+  const _AttachmentPreview({
+    required this.url,
+    required this.name,
+    required this.onTap,
+  });
+
+  bool get _isImage {
+    final lower = url.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.webp');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(
+          children: [
+            // Thumbnail untuk gambar
+            if (_isImage)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  url,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.armyGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.image_rounded,
+                      color: AppTheme.armyGreen,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.armyGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.attach_file_rounded,
+                  color: AppTheme.armyGreen,
+                  size: 22,
+                ),
+              ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name?.isNotEmpty == true ? name! : 'Lampiran',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textDark,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isImage
+                        ? 'Ketuk untuk melihat foto'
+                        : 'Ketuk untuk membuka',
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              _isImage ? Icons.zoom_in_rounded : Icons.open_in_new_rounded,
+              color: AppTheme.armyGreen,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Image Preview Dialog - Fullscreen dengan zoom
+// ═══════════════════════════════════════════════════════════════
+
+class _ImagePreviewDialog extends StatelessWidget {
+  final String imageUrl;
+
+  const _ImagePreviewDialog({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          // Gambar dengan zoom
+          Center(
+            child: InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                loadingBuilder: (_, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  final total = loadingProgress.expectedTotalBytes;
+                  final loaded = loadingProgress.cumulativeBytesLoaded;
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          value: total != null ? loaded / total : null,
+                          color: AppTheme.armyGreen,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Memuat gambar...',
+                          style:
+                              TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.broken_image_rounded,
+                          color: Colors.white38, size: 64),
+                      SizedBox(height: 12),
+                      Text(
+                        'Gagal memuat gambar',
+                        style: TextStyle(color: Colors.white54, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Tombol close
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 12,
+            child: Material(
+              color: Colors.black54,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.pop(context),
+                child: const Padding(
+                  padding: EdgeInsets.all(10),
+                  child:
+                      Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ),
+
+          // Hint pinch to zoom
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+            left: 0,
+            right: 0,
+            child: const Center(
+              child: Text(
+                'Cubit untuk zoom',
+                style: TextStyle(color: Colors.white38, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

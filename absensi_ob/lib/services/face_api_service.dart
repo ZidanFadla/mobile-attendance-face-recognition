@@ -63,7 +63,14 @@ class FaceApiService {
         .timeout(AppConstants.requestTimeout);
 
     if (response.statusCode != 200) {
-      throw Exception('Server error: ${response.statusCode}');
+      String errMsg = 'Server error: ${response.statusCode}';
+      try {
+        final errData = jsonDecode(response.body);
+        if (errData is Map && errData['message'] != null) {
+          errMsg = errData['message'];
+        }
+      } catch (_) {}
+      throw Exception(errMsg);
     }
 
     return FaceResponse.fromJson(jsonDecode(response.body));
@@ -91,7 +98,14 @@ class FaceApiService {
         .timeout(AppConstants.requestTimeout);
 
     if (response.statusCode != 200) {
-      throw Exception('Server error: ${response.statusCode}');
+      String errMsg = 'Server error: ${response.statusCode}';
+      try {
+        final errData = jsonDecode(response.body);
+        if (errData is Map && errData['message'] != null) {
+          errMsg = errData['message'];
+        }
+      } catch (_) {}
+      throw Exception(errMsg);
     }
 
     return FaceResponse.fromJson(jsonDecode(response.body));

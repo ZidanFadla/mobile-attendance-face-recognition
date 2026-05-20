@@ -25,11 +25,33 @@ class FaceRecognitionController extends Controller
         $employee = $request->user();
 
         // Forward ke Python server
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/register", [
-            'images' => $request->images,
-        ]);
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
+                ->post("{$this->pythonUrl()}/face/register", [
+                    'images' => $request->images,
+                ]);
 
-        $result = $response->json();
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+
+            $result = $response->json();
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
+            ], 500);
+        }
 
         if (!($result['success'] ?? false)) {
             return response()->json([
@@ -62,11 +84,33 @@ class FaceRecognitionController extends Controller
         ]);
 
         $employee = $request->user();
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/register", [
-            'images' => $request->images_base64,
-        ]);
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
+                ->post("{$this->pythonUrl()}/face/register", [
+                    'images' => $request->images_base64,
+                ]);
 
-        $result = $response->json();
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+
+            $result = $response->json();
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
+            ], 500);
+        }
 
         if (!($result['success'] ?? false)) {
             return response()->json([
@@ -115,13 +159,40 @@ class FaceRecognitionController extends Controller
 
         $storedEmbeddings = json_decode($employee->face_embedding, true);
 
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/verify", [
-            'image' => $imageBase64,
-            'type' => $request->type ?? 'image',
-            'stored_embeddings' => $storedEmbeddings,
-        ]);
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
+                ->post("{$this->pythonUrl()}/face/verify", [
+                    'image' => $imageBase64,
+                    'type' => $request->type ?? 'image',
+                    'stored_embeddings' => $storedEmbeddings,
+                ]);
 
-        return response()->json($response->json());
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'match' => false,
+                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+
+            $result = $response->json();
+            if (!$result) {
+                return response()->json([
+                    'success' => false,
+                    'match' => false,
+                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
+                ], 400);
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'match' => false,
+                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function checkFace(Request $request)
