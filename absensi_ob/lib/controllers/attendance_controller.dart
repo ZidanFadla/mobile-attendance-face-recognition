@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/attendance_record.dart';
 import '../core/app_constants.dart';
 import '../services/api_service.dart';
-import '../services/face_recognition_service.dart';
+import '../services/face_api_service.dart';
 import '../services/location_service.dart';
 import '../services/session_manager.dart';
 
@@ -119,18 +119,14 @@ class AttendanceController extends ChangeNotifier {
     try {
       // 1. Verifikasi wajah
       _setLoading(true, '🔍 Memverifikasi wajah...\nMohon tunggu sebentar');
-      final faceResult = await FaceRecognitionService.verifyFace(
-        imageFile: photoFile,
+      final faceResult = await FaceApiService.verifyFace(
+        filePath: photoFile.path,
+        isVideo: false,
       );
 
-      if (!faceResult['success'] || !faceResult['match']) {
+      if (!faceResult.success || faceResult.match != true) {
         _setLoading(false);
-        return AttendanceResult(
-          success: false,
-          message:
-              faceResult['message'] ??
-              'Wajah tidak cocok (${faceResult['confidence']}%).\nSilakan ulangi.',
-        );
+        return AttendanceResult(success: false, message: faceResult.message);
       }
 
       // 2. Ambil lokasi
@@ -192,7 +188,7 @@ class AttendanceController extends ChangeNotifier {
       return AttendanceResult(
         success: true,
         message:
-            '✅ Absen $type berhasil!\nJam: $formattedTime\nWajah terverifikasi (${faceResult['confidence']}%)',
+            '✅ Absen $type berhasil!\nJam: $formattedTime\nWajah terverifikasi (${faceResult.confidence?.toStringAsFixed(1) ?? '99'}%)',
         time: formattedTime,
       );
     } on TimeoutException {
@@ -232,20 +228,20 @@ class AttendanceController extends ChangeNotifier {
         '🧠 Memproses data wajah...\nIni mungkin memerlukan beberapa detik',
       );
 
-      final regResult = await FaceRecognitionService.registerFaceMultiple(
-        imageFiles: photos,
+      final regResult = await FaceApiService.registerFace(
+        photos.map((f) => f.path).toList(),
       );
 
       _setLoading(false);
 
-      if (regResult['success'] == true) {
+      if (regResult.success) {
         isFaceRegistered = true;
         notifyListeners();
       }
 
       return AttendanceResult(
-        success: regResult['success'] == true,
-        message: regResult['message'] ?? 'Registrasi selesai',
+        success: regResult.success,
+        message: regResult.message,
       );
     } on TimeoutException {
       _setLoading(false);

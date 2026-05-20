@@ -8,10 +8,9 @@ import 'package:absensi_ob/services/session_manager.dart';
 import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'face_scan_page.dart';
+import 'face_scan_simple_page.dart';
 import '../controllers/attendance_controller.dart';
 import '../core/app_constants.dart';
-import '../core/app_theme.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
@@ -120,7 +119,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _onClockIn() async {
     final path = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const FaceScanPage()),
+      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
     );
     if (path == null || !mounted) return;
 
@@ -131,7 +130,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _onClockOut() async {
     final path = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const FaceScanPage()),
+      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
     );
     if (path == null || !mounted) return;
 
@@ -149,7 +148,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       final path = await Navigator.push<String>(
         context,
         MaterialPageRoute(
-          builder: (_) => FaceScanPage(instruction: instructions[i]),
+          builder: (_) => FaceScanSimplePage(instruction: instructions[i]),
         ),
       );
 
@@ -822,7 +821,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),

@@ -11,27 +11,50 @@ class FaceRecognitionController extends Controller
         return rtrim(config('services.face_recognition.url'), '/');
     }
 
+    /**
+     * Register face — menerima format dari Flutter:
+     * { "images": ["base64_1", "base64_2", "base64_3"] }
+     */
     public function registerFace(Request $request)
     {
         $request->validate([
-            'image_base64' => 'required|string',
+            'images' => 'required|array|min:1',
+            'images.*' => 'required|string',
         ]);
 
         $employee = $request->user();
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/extract-embedding", [
-            'image_base64' => $request->image_base64,
+
+        // Forward ke Python server
+        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/register", [
+            'images' => $request->images,
         ]);
 
-        if (!$response['success']) {
-            return response()->json(['success' => false, 'message' => $response['message']], 400);
+        $result = $response->json();
+
+        if (!($result['success'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Gagal mendaftarkan wajah',
+            ], 400);
         }
 
-        $employee->face_embedding = json_encode($response['embedding']);
-        $employee->save();
+        // Simpan embedding ke database
+        $embeddings = $result['data']['embeddings'] ?? $result['embedding'] ?? null;
+        if ($embeddings) {
+            $employee->face_embedding = json_encode($embeddings);
+            $employee->save();
+        }
 
-        return response()->json(['success' => true, 'message' => 'Wajah berhasil didaftarkan']);
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'] ?? 'Wajah berhasil didaftarkan',
+        ]);
     }
 
+    /**
+     * Register face multiple (backward compatibility)
+     * { "images_base64": ["base64_1", "base64_2", "base64_3"] }
+     */
     public function registerFaceMultiple(Request $request)
     {
         $request->validate([
@@ -39,25 +62,47 @@ class FaceRecognitionController extends Controller
         ]);
 
         $employee = $request->user();
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/register-multiple", [
-            'images_base64' => $request->images_base64,
+        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/register", [
+            'images' => $request->images_base64,
         ]);
 
-        if (!$response['success']) {
-            return response()->json(['success' => false, 'message' => $response['message']], 400);
+        $result = $response->json();
+
+        if (!($result['success'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Gagal mendaftarkan wajah',
+            ], 400);
         }
 
-        $employee->face_embedding = json_encode($response['embedding']);
-        $employee->save();
+        $embeddings = $result['data']['embeddings'] ?? $result['embedding'] ?? null;
+        if ($embeddings) {
+            $employee->face_embedding = json_encode($embeddings);
+            $employee->save();
+        }
 
-        return response()->json(['success' => true, 'message' => 'Wajah berhasil didaftarkan dengan 3 foto!']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Wajah berhasil didaftarkan dengan 3 foto!',
+        ]);
     }
 
+    /**
+     * Verify face — menerima format dari Flutter:
+     * { "image": "base64_image", "type": "image" }
+     */
     public function verifyFace(Request $request)
     {
-        $request->validate([
-            'image_base64' => 'required|string',
-        ]);
+        // Terima 'image' (Flutter) atau 'image_base64' (legacy)
+        $imageBase64 = $request->image ?? $request->image_base64;
+
+        if (!$imageBase64) {
+            return response()->json([
+                'success' => false,
+                'match' => false,
+                'message' => 'Field image diperlukan',
+            ], 400);
+        }
 
         $employee = $request->user();
         if (!$employee || !$employee->face_embedding) {
@@ -68,9 +113,12 @@ class FaceRecognitionController extends Controller
             ], 404);
         }
 
-        $response = Http::timeout(60)->post("{$this->pythonUrl()}/verify-face", [
-            'current_image_base64' => $request->image_base64,
-            'stored_embedding' => json_decode($employee->face_embedding, true),
+        $storedEmbeddings = json_decode($employee->face_embedding, true);
+
+        $response = Http::timeout(60)->post("{$this->pythonUrl()}/face/verify", [
+            'image' => $imageBase64,
+            'type' => $request->type ?? 'image',
+            'stored_embeddings' => $storedEmbeddings,
         ]);
 
         return response()->json($response->json());

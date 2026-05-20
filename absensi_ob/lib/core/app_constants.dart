@@ -3,7 +3,8 @@ class AppConstants {
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://mobile-attendance-face-recognition-production.up.railway.app',
+    defaultValue:
+        'https://mobile-attendance-face-recognition-production.up.railway.app/api',
   );
   // static const String baseUrl = String.fromEnvironment(
   //   'API_BASE_URL',
@@ -15,13 +16,7 @@ class AppConstants {
   //   defaultValue: 'http://10.236.245.236:8000/api',
   // );
 
-  static const String faceServerUrl = String.fromEnvironment(
-    'FACE_SERVER_URL',
-    defaultValue: 'http://192.168.100.17:5000',
-  );
-
   static const Duration requestTimeout = Duration(seconds: 30);
-  static const double faceMatchThreshold = 0.4;
   static const bool devAttendanceBypass = bool.fromEnvironment(
     'DEV_ATTENDANCE_BYPASS',
     defaultValue: false,
