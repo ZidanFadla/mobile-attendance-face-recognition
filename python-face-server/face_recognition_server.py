@@ -12,8 +12,15 @@ import base64
 import cv2
 import os
 from deepface import DeepFace
-from silent_face_anti_spoofing import AntiSpoofPredict
 from dotenv import load_dotenv
+
+# Try importing silent_face_anti_spoofing (liveness detection)
+try:
+    from silent_face_anti_spoofing import AntiSpoofPredict
+    HAS_ANTI_SPOOF = True
+except ImportError:
+    HAS_ANTI_SPOOF = False
+    print("⚠️ Warning: 'silent_face_anti_spoofing' module not found. Liveness detection will be bypassed.")
 
 # Load environment variables
 load_dotenv()
@@ -37,9 +44,16 @@ print(f"   Detector: {DETECTOR_BACKEND}")
 print("=" * 60)
 
 try:
+    print("🤖 Initializing DeepFace...")
     DeepFace.build_model(MODEL_NAME)
-    anti_spoof = AntiSpoofPredict(device_id=0)
-    print("✅ Models loaded successfully!")
+    
+    if HAS_ANTI_SPOOF:
+        print("🛡️ Initializing AntiSpoofPredict...")
+        anti_spoof = AntiSpoofPredict(device_id=0)
+        print("✅ Models loaded successfully!")
+    else:
+        anti_spoof = None
+        print("✅ DeepFace model loaded! Liveness anti-spoofing bypass active.")
 except Exception as e:
     print(f"❌ Error loading models: {e}")
     anti_spoof = None
