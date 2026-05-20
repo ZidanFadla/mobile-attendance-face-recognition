@@ -49,7 +49,7 @@ try:
     
     if HAS_ANTI_SPOOF:
         print("🛡️ Initializing AntiSpoofPredict...")
-        anti_spoof = AntiSpoofPredict(device_id=0)
+        anti_spoof = AntiSpoofPredict(device_id=-1)
         print("✅ Models loaded successfully!")
     else:
         anti_spoof = None
@@ -419,7 +419,7 @@ def verify_face():
                     best_similarity = similarity
             
             # Check threshold
-            match = best_similarity >= (1 - MATCH_THRESHOLD)
+            match = best_similarity >= MATCH_THRESHOLD
             confidence = best_similarity * 100
             
             message = "Wajah terverifikasi" if match else "Wajah tidak cocok"
