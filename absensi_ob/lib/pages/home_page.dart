@@ -7,6 +7,7 @@ import '../services/session_manager.dart';
 
 /// Pure display widget for the Home tab.
 /// All business logic is in [MainShell].
+/// Refactored to fit 100% within a single non-scrollable premium dashboard.
 class HomePage extends StatefulWidget {
   final AttendanceController controller;
   final String name;
@@ -56,7 +57,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.04).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
@@ -91,23 +92,20 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryDark,
+      backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildAppBar(),
-              _buildDateBadge(),
-              _buildBigClock(),
-              _buildClockButton(),
-              const SizedBox(height: 20),
-              _buildLocationBadge(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              Expanded(flex: 4, child: _buildMainAttendanceCard()),
+              const SizedBox(height: 12),
               _buildStatusCard(),
-              const SizedBox(height: 20),
-              _buildPerformanceSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              Expanded(flex: 3, child: _buildPerformanceSection()),
             ],
           ),
         ),
@@ -122,137 +120,60 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ? '?'
         : widget.name.trim()[0].toUpperCase();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child:
-                widget.profilePhotoUrl != null &&
-                    widget.profilePhotoUrl!.isNotEmpty
-                ? Image.network(
-                    widget.profilePhotoUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, e, st) => _AvatarInitial(initial),
-                  )
-                : _AvatarInitial(initial),
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppTheme.greeting(),
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.name,
-                  style: TextStyle(
-                    color: AppTheme.textDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Date Badge ─────────────────────────────────────────────
-
-  Widget _buildDateBadge() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppTheme.cardDark,
-          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child:
+              widget.profilePhotoUrl != null &&
+                  widget.profilePhotoUrl!.isNotEmpty
+              ? Image.network(
+                  widget.profilePhotoUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, e, st) => _AvatarInitial(initial),
+                )
+              : _AvatarInitial(initial),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: AppTheme.btnGreen,
-                shape: BoxShape.circle,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppTheme.greeting(),
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _currentDate,
-              style: TextStyle(
-                color: AppTheme.textMuted,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+              const SizedBox(height: 2),
+              Text(
+                widget.name,
+                style: TextStyle(
+                  color: AppTheme.textDark,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  // ── Big Clock ──────────────────────────────────────────────
+  // ── Integrated Attendance HUD Card ───────────────────────────
 
-  Widget _buildBigClock() {
-    final parts = _currentTime.split(':');
-    final hours = parts.isNotEmpty ? parts[0] : '--';
-    final minutes = parts.length > 1 ? parts[1] : '--';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$hours:',
-            style: TextStyle(
-              color: AppTheme.textDark,
-              fontSize: 72,
-              fontWeight: FontWeight.w900,
-              height: 0.95,
-              letterSpacing: -2,
-            ),
-          ),
-          Text(
-            minutes,
-            style: TextStyle(
-              color: AppTheme.textDark,
-              fontSize: 72,
-              fontWeight: FontWeight.w900,
-              height: 0.95,
-              letterSpacing: -2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Clock Button ───────────────────────────────────────────
-
-  Widget _buildClockButton() {
+  Widget _buildMainAttendanceCard() {
     final bool hasClockedIn = _ctrl.isClockedIn;
     final bool hasClockedOut = _ctrl.clockOutTime != '--:--';
     final bool showClockOut = hasClockedIn && !hasClockedOut;
@@ -280,178 +201,315 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         : AppTheme.btnGreenDark;
     final IconData btnIcon = allDone
         ? Icons.check_circle_outline
-        : showClockOut
-        ? Icons.logout_rounded
-        : Icons.crop_square_rounded;
+        : Icons.face_retouching_natural_rounded;
 
-    return Center(
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          final scale = allDone ? 1.0 : _pulseAnimation.value;
-          return Transform.scale(
-            scale: scale,
-            child: GestureDetector(
-              onTap: onTap,
-              child: AnimatedBuilder(
-                animation: _ringAnimation,
-                builder: (context, child) {
-                  return SizedBox(
-                    width: 290,
-                    height: 290,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        _buildRing(230, 1, _ringAnimation.value * 0.3),
-                        _buildRing(176, 1.5, _ringAnimation.value * 0.5),
-                        _buildRing(158, 1, 0.25),
-                        // Main button
-                        Container(
-                          width: 160,
-                          height: 160,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              center: Alignment.topLeft,
-                              radius: 1.2,
-                              colors: [btnColor, btnColorDark],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: btnColor.withValues(alpha: 0.35),
-                                blurRadius: 28,
-                                spreadRadius: 2,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(btnIcon, color: Colors.white, size: 36),
-                              const SizedBox(height: 8),
-                              Text(
-                                label,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 2.5,
-                                ),
-                              ),
-                            ],
-                          ),
+    final parts = _currentTime.split(':');
+    final hours = parts.isNotEmpty ? parts[0] : '--';
+    final minutes = parts.length > 1 ? parts[1] : '--';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [AppTheme.cardShadow],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Top: Clock and Date + Status Tag in a unified clean Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _currentDate,
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        hours,
+                        style: TextStyle(
+                          color: AppTheme.textDark,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          letterSpacing: -0.5,
                         ),
-                      ],
+                      ),
+                      Text(
+                        ':',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                        ),
+                      ),
+                      Text(
+                        minutes,
+                        style: TextStyle(
+                          color: AppTheme.textDark,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceAlt,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: allDone
+                            ? AppTheme.textMuted
+                            : (showClockOut
+                                  ? AppTheme.warning
+                                  : AppTheme.success),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      allDone
+                          ? 'Sesi Hari Ini Selesai'
+                          : (showClockOut
+                                ? 'Sedang Bekerja'
+                                : 'Belum Absen'),
+                      style: TextStyle(
+                        color: AppTheme.textDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          // Middle: Massive Centered Pulsing Face-Scan Button
+          Expanded(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  final scale = allDone ? 1.0 : _pulseAnimation.value;
+                  return Transform.scale(
+                    scale: scale,
+                    child: GestureDetector(
+                      onTap: onTap,
+                      child: AnimatedBuilder(
+                        animation: _ringController,
+                        builder: (context, child) {
+                          return SizedBox(
+                            width: 210,
+                            height: 210,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // State-colored animated outer rings
+                                _buildRing(
+                                  205,
+                                  1.5,
+                                  _ringAnimation.value * 0.35,
+                                  btnColor,
+                                ),
+                                _buildRing(
+                                  175,
+                                  2.2,
+                                  _ringAnimation.value * 0.55,
+                                  btnColor,
+                                ),
+                                _buildRing(145, 1.5, 0.3, btnColor),
+                                // Main button circle with glowing breathing shadow
+                                Container(
+                                  width: 135,
+                                  height: 135,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [btnColor, btnColorDark],
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: btnColor.withValues(
+                                          alpha: 0.45,
+                                        ),
+                                        blurRadius:
+                                            20 +
+                                            (_pulseAnimation.value - 1.0) *
+                                                150,
+                                        spreadRadius:
+                                            3 +
+                                            (_pulseAnimation.value - 1.0) *
+                                                40,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                      BoxShadow(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 4,
+                                        spreadRadius: 1,
+                                        offset: const Offset(0, -2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        btnIcon,
+                                        color: Colors.white,
+                                        size: 56,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        label,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
               ),
             ),
-          );
-        },
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Bottom: Location Tag
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceAlt,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: AppTheme.armyGreen,
+                  size: 13,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _ctrl.alamatMasuk ?? 'Menunggu lokasi gps...',
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRing(double size, double width, double alpha) {
+  Widget _buildRing(double size, double width, double alpha, Color color) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: AppTheme.ringColor.withValues(alpha: alpha),
+          color: color.withValues(alpha: alpha),
           width: width,
         ),
       ),
     );
   }
 
-  // ── Location Badge ─────────────────────────────────────────
-
-  Widget _buildLocationBadge() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppTheme.cardDark,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: AppTheme.success,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(Icons.location_on, color: AppTheme.textMuted, size: 16),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                _ctrl.alamatMasuk ?? 'Menunggu lokasi...',
-                style: TextStyle(
-                  color: AppTheme.textMuted,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Status Card ────────────────────────────────────────────
+  // ── Status Card (Minimalist Bar) ─────────────────────────────
 
   Widget _buildStatusCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.cardDark,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _StatusItem(
-              icon: Icons.login_rounded,
-              iconBgColor: AppTheme.btnGreenDark.withValues(alpha: 0.5),
-              iconColor: AppTheme.btnGreen,
-              time: _ctrl.clockInTime,
-              label: 'Clock In',
-              accentColor: AppTheme.success,
-            ),
-            Container(width: 1, height: 56, color: AppTheme.dividerColor),
-            _StatusItem(
-              icon: Icons.logout_rounded,
-              iconBgColor: const Color(0xFF5A2020),
-              iconColor: AppTheme.error,
-              time: _ctrl.clockOutTime,
-              label: 'Clock Out',
-              accentColor: AppTheme.error,
-            ),
-            Container(width: 1, height: 56, color: AppTheme.dividerColor),
-            _StatusItem(
-              icon: Icons.timer_outlined,
-              iconBgColor: const Color(0xFF1A3A50),
-              iconColor: AppTheme.info,
-              time: _calculateDuration(),
-              label: 'Durasi',
-              accentColor: AppTheme.info,
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _StatusItem(
+            icon: Icons.login_rounded,
+            iconBgColor: AppTheme.btnGreenDark.withValues(alpha: 0.15),
+            iconColor: AppTheme.btnGreen,
+            time: _ctrl.clockInTime,
+            label: 'Clock In',
+            accentColor: AppTheme.success,
+          ),
+          Container(width: 1, height: 42, color: AppTheme.dividerColor),
+          _StatusItem(
+            icon: Icons.logout_rounded,
+            iconBgColor: AppTheme.error.withValues(alpha: 0.15),
+            iconColor: AppTheme.error,
+            time: _ctrl.clockOutTime,
+            label: 'Clock Out',
+            accentColor: AppTheme.error,
+          ),
+          Container(width: 1, height: 42, color: AppTheme.dividerColor),
+          _StatusItem(
+            icon: Icons.timer_outlined,
+            iconBgColor: AppTheme.info.withValues(alpha: 0.15),
+            iconColor: AppTheme.info,
+            time: _calculateDuration(),
+            label: 'Durasi Kerja',
+            accentColor: AppTheme.info,
+          ),
+        ],
       ),
     );
   }
@@ -472,21 +530,25 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return '$h:$m';
   }
 
+  // ── Performance Section ──────────────────────────────────────
+
   Map<String, dynamic> _calculatePerformanceMetrics() {
     final records = SessionManager.getRecords(widget.name);
     final now = DateTime.now();
     final currentMonth = now.month;
     final currentYear = now.year;
 
-    // Filter records for current month of type 'Masuk'
-    final monthRecords = records.where((r) =>
-        r.timestamp.month == currentMonth &&
-        r.timestamp.year == currentYear &&
-        r.type == 'Masuk').toList();
+    final monthRecords = records
+        .where(
+          (r) =>
+              r.timestamp.month == currentMonth &&
+              r.timestamp.year == currentYear &&
+              r.type == 'Masuk',
+        )
+        .toList();
 
     final totalPresent = monthRecords.length;
 
-    // Calculate on time count (before 08:00 AM)
     int onTimeCount = 0;
     for (final r in monthRecords) {
       final hour = r.timestamp.hour;
@@ -497,19 +559,31 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
 
     final lateCount = totalPresent - onTimeCount;
-    final onTimePct = totalPresent > 0 ? (onTimeCount / totalPresent) * 100 : 100.0;
+    final onTimePct = totalPresent > 0
+        ? (onTimeCount / totalPresent) * 100
+        : 100.0;
 
-    // Filter records for the current week (Monday to Sunday)
     final daysToSubtract = now.weekday - 1;
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToSubtract));
-    final sunday = monday.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: daysToSubtract));
+    final sunday = monday.add(
+      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+    );
 
-    final weekRecords = records.where((r) =>
-        r.timestamp.isAfter(monday.subtract(const Duration(seconds: 1))) &&
-        r.timestamp.isBefore(sunday.add(const Duration(seconds: 1))) &&
-        r.type == 'Masuk').toList();
+    final weekRecords = records
+        .where(
+          (r) =>
+              r.timestamp.isAfter(
+                monday.subtract(const Duration(seconds: 1)),
+              ) &&
+              r.timestamp.isBefore(sunday.add(const Duration(seconds: 1))) &&
+              r.type == 'Masuk',
+        )
+        .toList();
 
-    // Distinct week days
     final weekDays = weekRecords.map((r) => r.timestamp.day).toSet();
     final weekCount = weekDays.length;
 
@@ -524,8 +598,18 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   String _getIndonesianMonthYear() {
     final now = DateTime.now();
     final months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${months[now.month - 1]} ${now.year}';
   }
@@ -537,7 +621,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final int lateCount = metrics['lateCount'] as int;
     final int weekCount = metrics['weekCount'] as int;
 
-    // Determine performance level label
     String performanceLabel = 'Cukup';
     if (onTimePct >= 95) {
       performanceLabel = 'Sangat Baik';
@@ -547,98 +630,100 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     final double weekProgress = (weekCount / 5.0).clamp(0.0, 1.0);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.border),
-          boxShadow: [AppTheme.cardShadow],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'PERFORMA BULAN INI',
-                      style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getIndonesianMonthYear(),
-                      style: TextStyle(
-                        color: AppTheme.textDark,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTheme.armyGreenLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    performanceLabel,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [AppTheme.cardShadow],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PERFORMA BULAN INI',
                     style: TextStyle(
-                      color: AppTheme.armyGreen,
-                      fontSize: 12,
+                      color: AppTheme.textMuted,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Progres Absensi Minggu Ini',
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 2),
+                  Text(
+                    _getIndonesianMonthYear(),
+                    style: TextStyle(
+                      color: AppTheme.textDark,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
                 ),
-                Text(
-                  '$weekCount/5 Hari',
+                decoration: BoxDecoration(
+                  color: AppTheme.armyGreenLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  performanceLabel,
                   style: TextStyle(
-                    color: AppTheme.textDark,
+                    color: AppTheme.armyGreen,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 8,
-                child: LinearProgressIndicator(
-                  value: weekProgress,
-                  backgroundColor: AppTheme.surfaceAlt,
-                  color: AppTheme.armyGreen,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Progres Minggu Ini',
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+              Text(
+                '$weekCount/5 Hari',
+                style: TextStyle(
+                  color: AppTheme.textDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: 6,
+              child: LinearProgressIndicator(
+                value: weekProgress,
+                backgroundColor: AppTheme.surfaceAlt,
+                color: AppTheme.armyGreen,
+              ),
             ),
-            const SizedBox(height: 22),
-            Row(
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Row(
               children: [
                 _buildPerformanceMetric(
                   value: '$totalPresent Hari',
@@ -647,7 +732,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   iconColor: AppTheme.success,
                   bgColor: AppTheme.success.withValues(alpha: 0.12),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 _buildPerformanceMetric(
                   value: '${onTimePct.toStringAsFixed(0)}%',
                   label: 'Tepat Waktu',
@@ -655,7 +740,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   iconColor: AppTheme.warning,
                   bgColor: AppTheme.warning.withValues(alpha: 0.12),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 _buildPerformanceMetric(
                   value: '${lateCount}x',
                   label: 'Terlambat',
@@ -665,8 +750,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -680,23 +765,21 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: AppTheme.surfaceAlt,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.border),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(icon, color: iconColor, size: 18),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
@@ -710,7 +793,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               label,
               style: TextStyle(
                 color: AppTheme.textMuted,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -734,7 +817,7 @@ class _AvatarInitial extends StatelessWidget {
         initial,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -765,26 +848,26 @@ class _StatusItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
           child: Icon(icon, color: iconColor, size: 20),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Text(
           time,
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
             color: accentColor,
-            letterSpacing: 1,
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             color: AppTheme.textMuted,
             fontWeight: FontWeight.w500,
           ),

@@ -161,7 +161,7 @@ class _LoginPageState extends State<LoginPage>
             'assets/logo.png',
             fit: BoxFit.cover,
             errorBuilder: (_, e, st) => const Icon(
-              Icons.fingerprint,
+              Icons.face_retouching_natural_rounded,
               color: Colors.white,
               size: 44,
             ),

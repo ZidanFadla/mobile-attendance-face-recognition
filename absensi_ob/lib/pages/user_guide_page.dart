@@ -48,7 +48,7 @@ class UserGuidePage extends StatelessWidget {
             title: 'Absensi Harian',
             items: const [
               _GuideStep(
-                icon: Icons.fingerprint_rounded,
+                icon: Icons.face_retouching_natural_rounded,
                 title: 'Absensi masuk',
                 description:
                     'Buka Home, tekan tombol absensi masuk, lalu lakukan scan wajah dan izinkan akses lokasi.',

@@ -223,7 +223,7 @@ class _RegisterPageState extends State<RegisterPage>
             'assets/logo.png',
             fit: BoxFit.cover,
             errorBuilder: (_, e, st) => const Icon(
-              Icons.fingerprint,
+              Icons.face_retouching_natural_rounded,
               color: Colors.white,
               size: 36,
             ),
