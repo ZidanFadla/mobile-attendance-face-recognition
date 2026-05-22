@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/face/register', [FaceRecognitionController::class, 'registerFace']);
     Route::post('/face/verify', [FaceRecognitionController::class, 'verifyFace']);
     Route::get('/face/check', [FaceRecognitionController::class, 'checkFace']);
+    Route::get('/attendance', [AttendanceApiController::class, 'index']);
     Route::post('/attendance', [AttendanceApiController::class, 'store']);
     Route::post('/face/register-multiple', [FaceRecognitionController::class, 'registerFaceMultiple']);
     Route::put('/profile', [EmployeeAuthController::class, 'updateProfile']);

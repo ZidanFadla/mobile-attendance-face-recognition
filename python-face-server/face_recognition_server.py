@@ -180,9 +180,11 @@ def validate_quality(image):
 def extract_embedding(image):
     """
     Extract face embedding (512-dim vector)
+    With automatic fallback to non-aligned representation if alignment fails
     Returns: numpy array or None if failed
     """
     try:
+        # First attempt: with alignment (highest accuracy)
         result = DeepFace.represent(
             img_path=image,
             model_name=MODEL_NAME,
@@ -191,15 +193,27 @@ def extract_embedding(image):
             align=True,
         )
         
-        if not result:
-            return None
-        
-        embedding = np.array(result[0]['embedding'])
-        return embedding
-        
+        if result:
+            return np.array(result[0]['embedding']).flatten()
+            
     except Exception as e:
-        print(f"⚠️ Embedding extraction error: {e}")
-        return None
+        print(f"⚠️ Embedding extraction error with alignment: {e}")
+        print("🔄 Retrying face representation without alignment (fallback)...")
+        try:
+            # Fallback attempt: without alignment
+            result = DeepFace.represent(
+                img_path=image,
+                model_name=MODEL_NAME,
+                detector_backend=DETECTOR_BACKEND,
+                enforce_detection=True,
+                align=False,
+            )
+            if result:
+                return np.array(result[0]['embedding']).flatten()
+        except Exception as retry_e:
+            print(f"❌ Fallback embedding extraction failed: {retry_e}")
+            
+    return None
 
 
 def cosine_similarity(emb1, emb2):
@@ -207,9 +221,13 @@ def cosine_similarity(emb1, emb2):
     Calculate cosine similarity between two embeddings
     Returns: float (0-1, higher = more similar)
     """
-    dot_product = np.dot(emb1, emb2)
-    norm1 = np.linalg.norm(emb1)
-    norm2 = np.linalg.norm(emb2)
+    # Convert and flatten both arrays to 1D to ensure shape consistency
+    emb1_flat = np.asarray(emb1).flatten()
+    emb2_flat = np.asarray(emb2).flatten()
+    
+    dot_product = np.dot(emb1_flat, emb2_flat)
+    norm1 = np.linalg.norm(emb1_flat)
+    norm2 = np.linalg.norm(emb2_flat)
     
     if norm1 == 0 or norm2 == 0:
         return 0.0

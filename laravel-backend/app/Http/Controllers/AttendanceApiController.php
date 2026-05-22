@@ -7,6 +7,20 @@ use Carbon\Carbon;
 
 class AttendanceApiController extends Controller
 {
+    public function index(Request $request)
+    {
+        $employee = $request->user();
+
+        $attendances = Attendance::where('employee_id', $employee->id)
+            ->orderBy('timestamp', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $attendances,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
