@@ -67,17 +67,17 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
+        iconTheme: IconThemeData(color: AppTheme.textDark),
         title: Text(
           _title,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: AppTheme.armyGreen),
             )
           : RefreshIndicator(
@@ -117,14 +117,14 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
         Text(
           _isLeave ? 'Belum ada riwayat cuti' : 'Belum ada riwayat kasbon',
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTheme.textDark,
             fontSize: 16,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Pengajuan yang sudah dikirim akan muncul di sini.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
@@ -256,7 +256,7 @@ class _MoneyRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
         ),
         const Spacer(),
         Text(
@@ -265,7 +265,7 @@ class _MoneyRow extends StatelessWidget {
             symbol: 'Rp ',
             decimalDigits: 0,
           ).format(amount),
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
             fontSize: 13,
@@ -295,7 +295,7 @@ class _StatBox extends StatelessWidget {
           children: [
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppTheme.textDark,
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
@@ -306,7 +306,7 @@ class _StatBox extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 10),
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 10),
             ),
           ],
         ),
@@ -367,7 +367,7 @@ class _HistoryCard extends StatelessWidget {
                   children: [
                     Text(
                       _title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppTheme.textDark,
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
@@ -376,7 +376,7 @@ class _HistoryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppTheme.textMuted,
                         fontSize: 12,
                       ),
@@ -390,7 +390,7 @@ class _HistoryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             item['reason']?.toString() ?? '-',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontSize: 13,
               height: 1.45,
@@ -408,7 +408,7 @@ class _HistoryCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               'Catatan admin: ${item['admin_note']}',
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
             ),
           ],
         ],
@@ -574,14 +574,14 @@ class _AttachmentPreview extends StatelessWidget {
                   width: 48,
                   height: 48,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, e, st) => Container(
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
                       color: AppTheme.armyGreen.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.image_rounded,
                       color: AppTheme.armyGreen,
                       size: 22,
@@ -597,7 +597,7 @@ class _AttachmentPreview extends StatelessWidget {
                   color: AppTheme.armyGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.attach_file_rounded,
                   color: AppTheme.armyGreen,
                   size: 22,
@@ -611,7 +611,7 @@ class _AttachmentPreview extends StatelessWidget {
                   Text(
                     name?.isNotEmpty == true ? name! : 'Lampiran',
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
@@ -622,7 +622,7 @@ class _AttachmentPreview extends StatelessWidget {
                     _isImage
                         ? 'Ketuk untuk melihat foto'
                         : 'Ketuk untuk membuka',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 11,
                     ),
@@ -687,7 +687,7 @@ class _ImagePreviewDialog extends StatelessWidget {
                     ),
                   );
                 },
-                errorBuilder: (_, __, ___) => const Center(
+                errorBuilder: (_, e, st) => const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

@@ -222,8 +222,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
-        title: const Text(
+        iconTheme: IconThemeData(color: AppTheme.textDark),
+        title: Text(
           'Profile Settings',
           style: TextStyle(
             color: AppTheme.textDark,
@@ -450,7 +450,7 @@ class _ProfileSummary extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textDark,
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
@@ -459,7 +459,7 @@ class _ProfileSummary extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   phoneNumber,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 13,
                   ),
@@ -500,13 +500,13 @@ class _PhotoSourceTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 14,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right_rounded,
         color: AppTheme.textMuted,
       ),
@@ -534,7 +534,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontWeight: FontWeight.w800,
               fontSize: 14,

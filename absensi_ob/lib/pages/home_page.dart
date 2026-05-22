@@ -1,76 +1,50 @@
-import 'dart:io';
 import 'dart:async';
-import 'package:absensi_ob/pages/login_page.dart';
-import 'package:absensi_ob/pages/history_page.dart';
-import 'package:absensi_ob/pages/messages_page.dart';
-import 'package:absensi_ob/pages/more_page.dart';
-import 'package:absensi_ob/services/session_manager.dart';
-import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'face_scan_simple_page.dart';
 import '../controllers/attendance_controller.dart';
-import '../core/app_constants.dart';
+import '../core/app_theme.dart';
+import '../services/session_manager.dart';
 
+/// Pure display widget for the Home tab.
+/// All business logic is in [MainShell].
 class HomePage extends StatefulWidget {
+  final AttendanceController controller;
   final String name;
   final String phoneNumber;
   final String? profilePhotoUrl;
+  final VoidCallback onClockIn;
+  final VoidCallback onClockOut;
 
   const HomePage({
     super.key,
+    required this.controller,
     required this.name,
     required this.phoneNumber,
     this.profilePhotoUrl,
+    required this.onClockIn,
+    required this.onClockOut,
   });
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  late final AttendanceController _controller;
+class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Timer _clockTimer;
-  late String _employeeName;
-  late String _employeePhoneNumber;
-  String? _employeeProfilePhotoUrl;
   String _currentTime = '';
   String _currentDate = '';
-  int _currentNavIndex = 0;
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
 
-  // ── Dark theme colors matching screenshot ──
-  static const Color _bgDark = Color(0xFF0E2140);
-  static const Color _cardDark = Color(0xFF1A3A5C);
-  static const Color _btnGreen = Color(0xFF2ECC8A);
-  static const Color _btnGreenDark = Color(0xFF1FAF72);
-  static const Color _btnRed = Color(0xFFE53935);
-  static const Color _textWhite = Colors.white;
-  static const Color _textMuted = Color(0xFF7BAFD4);
-  static const Color _dividerColor = Color(0xFF1E4060);
-  static const Color _ringColor = Color(0xFF2ECC8A);
+  AttendanceController get _ctrl => widget.controller;
 
   @override
   void initState() {
     super.initState();
-    _employeeName = widget.name;
-    _employeePhoneNumber = widget.phoneNumber;
-    _employeeProfilePhotoUrl = widget.profilePhotoUrl;
-    _controller = AttendanceController(
-      name: widget.name,
-      phoneNumber: widget.phoneNumber,
-    );
-    _controller.addListener(() => setState(() {}));
-
-    _controller.init().then((needsRegistration) {
-      if (needsRegistration && mounted) {
-        _showRegisterFaceDialog();
-      }
-    });
+    _ctrl.addListener(_onControllerUpdate);
 
     _updateTime();
     _clockTimer = Timer.periodic(
@@ -95,6 +69,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  void _onControllerUpdate() => setState(() {});
+
   void _updateTime() {
     final now = DateTime.now();
     setState(() {
@@ -105,253 +81,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _ctrl.removeListener(_onControllerUpdate);
     _clockTimer.cancel();
     _pulseController.dispose();
     _ringController.dispose();
-    _controller.dispose();
     super.dispose();
   }
 
-  // ══════════════════════════════════════════════════════════════
-  //  EVENT HANDLERS — hanya panggil controller, lalu tampilkan hasil
-  // ══════════════════════════════════════════════════════════════
-
-  Future<void> _onClockIn() async {
-    final path = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
-    );
-    if (path == null || !mounted) return;
-
-    final result = await _controller.clockIn(File(path));
-    if (mounted) _showResultDialog(result.message, result.success);
-  }
-
-  Future<void> _onClockOut() async {
-    final path = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
-    );
-    if (path == null || !mounted) return;
-
-    final result = await _controller.clockOut(File(path));
-    if (mounted) _showResultDialog(result.message, result.success);
-  }
-
-  Future<void> _onRegisterFace() async {
-    final List<File> photos = [];
-    final instructions = AppConstants.faceRegisterInstructions;
-
-    for (int i = 0; i < 3; i++) {
-      if (!mounted) return;
-
-      final path = await Navigator.push<String>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FaceScanSimplePage(instruction: instructions[i]),
-        ),
-      );
-
-      if (path == null) {
-        if (mounted) _showResultDialog('Registrasi dibatalkan', false);
-        return;
-      }
-
-      photos.add(File(path));
-
-      if (i < 2 && mounted) {
-        await _showPhotoProgressDialog(i + 1);
-      }
-    }
-
-    if (!mounted) return;
-    final result = await _controller.registerFace(photos);
-
-    if (mounted) {
-      _showResultDialog(result.message, result.success);
-      if (!result.success) {
-        await Future.delayed(const Duration(seconds: 2));
-        if (mounted) _showRegisterFaceDialog();
-      }
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  //  DIALOGS — hanya tampilan, tidak ada logic bisnis
-  // ══════════════════════════════════════════════════════════════
-
-  void _showRegisterFaceDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Registrasi Wajah',
-          style: TextStyle(color: _textWhite),
-        ),
-        content: const Text(
-          'Wajah kamu belum terdaftar. Silakan registrasi wajah terlebih dahulu untuk bisa absen.',
-          style: TextStyle(color: _textMuted),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _onRegisterFace();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _btnGreen,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Registrasi Sekarang',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showPhotoProgressDialog(int photoNumber) {
-    return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: _cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFF22C55E),
-                size: 56,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '✅ Foto $photoNumber/3 berhasil!\nSiap untuk foto berikutnya.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15, color: _textWhite),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _btnGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Lanjut Foto Berikutnya',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showResultDialog(String message, bool success) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: _cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                success ? Icons.check_circle : Icons.error,
-                color: success
-                    ? const Color(0xFF22C55E)
-                    : const Color(0xFFEF4444),
-                size: 56,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15, color: _textWhite),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: success
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFFEF4444),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  //  BUILD
-  // ══════════════════════════════════════════════════════════════
-
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _buildMainScaffold(),
-        if (_controller.isLoading)
-          Container(
-            color: Colors.black54,
-            child: Center(
-              child: Dialog(
-                backgroundColor: _cardDark,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(color: _btnGreen),
-                      const SizedBox(height: 40),
-                      Text(
-                        _controller.loadingMessage,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: _textWhite,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMainScaffold() {
     return Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: AppTheme.primaryDark,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -365,76 +105,78 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               _buildLocationBadge(),
               const SizedBox(height: 20),
               _buildStatusCard(),
-              const SizedBox(height: 10), // space for bottom nav
+              const SizedBox(height: 20),
+              _buildPerformanceSection(),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // ─── App Bar ──────────────────────────────────────────────
+  // ── App Bar ────────────────────────────────────────────────
 
   Widget _buildAppBar() {
+    final initial = widget.name.trim().isEmpty
+        ? '?'
+        : widget.name.trim()[0].toUpperCase();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'SELAMAT PAGI',
-                style: TextStyle(
-                  color: _textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _employeeName,
-                style: const TextStyle(
-                  color: _textWhite,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child:
+                widget.profilePhotoUrl != null &&
+                    widget.profilePhotoUrl!.isNotEmpty
+                ? Image.network(
+                    widget.profilePhotoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, e, st) => _AvatarInitial(initial),
+                  )
+                : _AvatarInitial(initial),
           ),
-          _buildAppBarIcon(Icons.logout_rounded, () async {
-            await TokenStorage.clearToken();
-            if (!mounted) return;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-            );
-          }),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppTheme.greeting(),
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.name,
+                  style: TextStyle(
+                    color: AppTheme.textDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAppBarIcon(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: _cardDark,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(icon, color: _textMuted, size: 20),
-      ),
-    );
-  }
-
-  // ─── Date Badge ───────────────────────────────────────────
+  // ── Date Badge ─────────────────────────────────────────────
 
   Widget _buildDateBadge() {
     return Padding(
@@ -442,7 +184,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: _cardDark,
+          color: AppTheme.cardDark,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -451,16 +193,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Container(
               width: 6,
               height: 6,
-              decoration: const BoxDecoration(
-                color: _btnGreen,
+              decoration: BoxDecoration(
+                color: AppTheme.btnGreen,
                 shape: BoxShape.circle,
               ),
             ),
             const SizedBox(width: 8),
             Text(
               _currentDate,
-              style: const TextStyle(
-                color: _textMuted,
+              style: TextStyle(
+                color: AppTheme.textMuted,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -471,10 +213,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ─── Big Clock Display ────────────────────────────────────
+  // ── Big Clock ──────────────────────────────────────────────
 
   Widget _buildBigClock() {
-    // Split time into hours and minutes for the stacked display in screenshot
     final parts = _currentTime.split(':');
     final hours = parts.isNotEmpty ? parts[0] : '--';
     final minutes = parts.length > 1 ? parts[1] : '--';
@@ -486,8 +227,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           Text(
             '$hours:',
-            style: const TextStyle(
-              color: _textWhite,
+            style: TextStyle(
+              color: AppTheme.textDark,
               fontSize: 72,
               fontWeight: FontWeight.w900,
               height: 0.95,
@@ -496,8 +237,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
           Text(
             minutes,
-            style: const TextStyle(
-              color: _textWhite,
+            style: TextStyle(
+              color: AppTheme.textDark,
               fontSize: 72,
               fontWeight: FontWeight.w900,
               height: 0.95,
@@ -509,11 +250,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ─── Clock In / Out Button (Big Circle with Ring) ─────────
+  // ── Clock Button ───────────────────────────────────────────
 
   Widget _buildClockButton() {
-    final bool hasClockedIn = _controller.isClockedIn;
-    final bool hasClockedOut = _controller.clockOutTime != '--:--';
+    final bool hasClockedIn = _ctrl.isClockedIn;
+    final bool hasClockedOut = _ctrl.clockOutTime != '--:--';
     final bool showClockOut = hasClockedIn && !hasClockedOut;
     final bool allDone = hasClockedIn && hasClockedOut;
 
@@ -522,30 +263,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         : showClockOut
         ? 'CLOCK OUT'
         : 'CLOCK IN';
-
     final VoidCallback? onTap = allDone
         ? null
         : showClockOut
-        ? _onClockOut
-        : _onClockIn;
-
+        ? widget.onClockOut
+        : widget.onClockIn;
     final Color btnColor = allDone
         ? const Color(0xFF4A5568)
         : showClockOut
-        ? _btnRed
-        : _btnGreen;
-
+        ? AppTheme.btnRed
+        : AppTheme.btnGreen;
     final Color btnColorDark = allDone
         ? const Color(0xFF3A4555)
         : showClockOut
         ? const Color(0xFF6B2A2A)
-        : _btnGreenDark;
-
+        : AppTheme.btnGreenDark;
     final IconData btnIcon = allDone
         ? Icons.check_circle_outline
         : showClockOut
         ? Icons.logout_rounded
-        : Icons.crop_square_rounded; // matches square icon in screenshot
+        : Icons.crop_square_rounded;
 
     return Center(
       child: AnimatedBuilder(
@@ -560,52 +297,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 animation: _ringAnimation,
                 builder: (context, child) {
                   return SizedBox(
-                    width: 330,
-                    height: 330,
+                    width: 290,
+                    height: 290,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Outermost dashed ring
-                        Container(
-                          width: 230,
-                          height: 230,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _ringColor.withValues(
-                                alpha: _ringAnimation.value * 0.3,
-                              ),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        // Middle ring
-                        Container(
-                          width: 176,
-                          height: 176,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _ringColor.withValues(
-                                alpha: _ringAnimation.value * 0.5,
-                              ),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        // Inner ring (subtle glow arc)
-                        Container(
-                          width: 158,
-                          height: 158,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _ringColor.withValues(alpha: 0.25),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        // Main button circle
+                        _buildRing(230, 1, _ringAnimation.value * 0.3),
+                        _buildRing(176, 1.5, _ringAnimation.value * 0.5),
+                        _buildRing(158, 1, 0.25),
+                        // Main button
                         Container(
                           width: 160,
                           height: 160,
@@ -654,7 +354,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ─── Location Badge ───────────────────────────────────────
+  Widget _buildRing(double size, double width, double alpha) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppTheme.ringColor.withValues(alpha: alpha),
+          width: width,
+        ),
+      ),
+    );
+  }
+
+  // ── Location Badge ─────────────────────────────────────────
 
   Widget _buildLocationBadge() {
     return Padding(
@@ -663,27 +377,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: _cardDark,
-          borderRadius: BorderRadius.circular(14),
+          color: AppTheme.cardDark,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
-                color: Color(0xFF22C55E),
+              decoration: BoxDecoration(
+                color: AppTheme.success,
                 shape: BoxShape.circle,
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(Icons.location_on, color: _textMuted, size: 16),
+            Icon(Icons.location_on, color: AppTheme.textMuted, size: 16),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                _controller.alamatMasuk ?? 'Menunggu lokasi...',
-                style: const TextStyle(
-                  color: _textMuted,
+                _ctrl.alamatMasuk ?? 'Menunggu lokasi...',
+                style: TextStyle(
+                  color: AppTheme.textMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -696,45 +410,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ─── Status Card (dark) ───────────────────────────────────
+  // ── Status Card ────────────────────────────────────────────
 
   Widget _buildStatusCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
         decoration: BoxDecoration(
-          color: _cardDark,
-          borderRadius: BorderRadius.circular(20),
+          color: AppTheme.cardDark,
+          borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildStatusItem(
+            _StatusItem(
               icon: Icons.login_rounded,
-              iconBgColor: _btnGreenDark.withValues(alpha: 0.5),
-              iconColor: _btnGreen,
-              time: _controller.clockInTime,
+              iconBgColor: AppTheme.btnGreenDark.withValues(alpha: 0.5),
+              iconColor: AppTheme.btnGreen,
+              time: _ctrl.clockInTime,
               label: 'Clock In',
-              accentColor: const Color(0xFF22C55E),
+              accentColor: AppTheme.success,
             ),
-            _buildStatusDivider(),
-            _buildStatusItem(
+            Container(width: 1, height: 56, color: AppTheme.dividerColor),
+            _StatusItem(
               icon: Icons.logout_rounded,
               iconBgColor: const Color(0xFF5A2020),
-              iconColor: const Color(0xFFEF4444),
-              time: _controller.clockOutTime,
+              iconColor: AppTheme.error,
+              time: _ctrl.clockOutTime,
               label: 'Clock Out',
-              accentColor: const Color(0xFFEF4444),
+              accentColor: AppTheme.error,
             ),
-            _buildStatusDivider(),
-            _buildStatusItem(
+            Container(width: 1, height: 56, color: AppTheme.dividerColor),
+            _StatusItem(
               icon: Icons.timer_outlined,
               iconBgColor: const Color(0xFF1A3A50),
-              iconColor: const Color(0xFF60A5FA),
+              iconColor: AppTheme.info,
               time: _calculateDuration(),
               label: 'Durasi',
-              accentColor: const Color(0xFF60A5FA),
+              accentColor: AppTheme.info,
             ),
           ],
         ),
@@ -742,14 +456,311 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatusItem({
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    required String time,
+  String _calculateDuration() {
+    if (_ctrl.clockInTime == '--:--') return '--:--';
+    final start = _ctrl.timestampMasuk;
+    if (start == null) return '--:--';
+
+    final end = _ctrl.clockOutTime != '--:--'
+        ? _ctrl.timestampPulang
+        : DateTime.now();
+    if (end == null) return '--:--';
+
+    final diff = end.difference(start);
+    final h = diff.inHours.toString().padLeft(2, '0');
+    final m = (diff.inMinutes % 60).toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Map<String, dynamic> _calculatePerformanceMetrics() {
+    final records = SessionManager.getRecords(widget.name);
+    final now = DateTime.now();
+    final currentMonth = now.month;
+    final currentYear = now.year;
+
+    // Filter records for current month of type 'Masuk'
+    final monthRecords = records.where((r) =>
+        r.timestamp.month == currentMonth &&
+        r.timestamp.year == currentYear &&
+        r.type == 'Masuk').toList();
+
+    final totalPresent = monthRecords.length;
+
+    // Calculate on time count (before 08:00 AM)
+    int onTimeCount = 0;
+    for (final r in monthRecords) {
+      final hour = r.timestamp.hour;
+      final minute = r.timestamp.minute;
+      if (hour < 8 || (hour == 8 && minute == 0)) {
+        onTimeCount++;
+      }
+    }
+
+    final lateCount = totalPresent - onTimeCount;
+    final onTimePct = totalPresent > 0 ? (onTimeCount / totalPresent) * 100 : 100.0;
+
+    // Filter records for the current week (Monday to Sunday)
+    final daysToSubtract = now.weekday - 1;
+    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToSubtract));
+    final sunday = monday.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
+    final weekRecords = records.where((r) =>
+        r.timestamp.isAfter(monday.subtract(const Duration(seconds: 1))) &&
+        r.timestamp.isBefore(sunday.add(const Duration(seconds: 1))) &&
+        r.type == 'Masuk').toList();
+
+    // Distinct week days
+    final weekDays = weekRecords.map((r) => r.timestamp.day).toSet();
+    final weekCount = weekDays.length;
+
+    return {
+      'totalPresent': totalPresent,
+      'onTimePct': onTimePct,
+      'lateCount': lateCount,
+      'weekCount': weekCount,
+    };
+  }
+
+  String _getIndonesianMonthYear() {
+    final now = DateTime.now();
+    final months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${months[now.month - 1]} ${now.year}';
+  }
+
+  Widget _buildPerformanceSection() {
+    final metrics = _calculatePerformanceMetrics();
+    final int totalPresent = metrics['totalPresent'] as int;
+    final double onTimePct = metrics['onTimePct'] as double;
+    final int lateCount = metrics['lateCount'] as int;
+    final int weekCount = metrics['weekCount'] as int;
+
+    // Determine performance level label
+    String performanceLabel = 'Cukup';
+    if (onTimePct >= 95) {
+      performanceLabel = 'Sangat Baik';
+    } else if (onTimePct >= 85) {
+      performanceLabel = 'Baik';
+    }
+
+    final double weekProgress = (weekCount / 5.0).clamp(0.0, 1.0);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.border),
+          boxShadow: [AppTheme.cardShadow],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PERFORMA BULAN INI',
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getIndonesianMonthYear(),
+                      style: TextStyle(
+                        color: AppTheme.textDark,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.armyGreenLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    performanceLabel,
+                    style: TextStyle(
+                      color: AppTheme.armyGreen,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Progres Absensi Minggu Ini',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '$weekCount/5 Hari',
+                  style: TextStyle(
+                    color: AppTheme.textDark,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                height: 8,
+                child: LinearProgressIndicator(
+                  value: weekProgress,
+                  backgroundColor: AppTheme.surfaceAlt,
+                  color: AppTheme.armyGreen,
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                _buildPerformanceMetric(
+                  value: '$totalPresent Hari',
+                  label: 'Hadir',
+                  icon: Icons.check_circle_outline_rounded,
+                  iconColor: AppTheme.success,
+                  bgColor: AppTheme.success.withValues(alpha: 0.12),
+                ),
+                const SizedBox(width: 12),
+                _buildPerformanceMetric(
+                  value: '${onTimePct.toStringAsFixed(0)}%',
+                  label: 'Tepat Waktu',
+                  icon: Icons.bolt_rounded,
+                  iconColor: AppTheme.warning,
+                  bgColor: AppTheme.warning.withValues(alpha: 0.12),
+                ),
+                const SizedBox(width: 12),
+                _buildPerformanceMetric(
+                  value: '${lateCount}x',
+                  label: 'Terlambat',
+                  icon: Icons.error_outline_rounded,
+                  iconColor: AppTheme.error,
+                  bgColor: AppTheme.error.withValues(alpha: 0.12),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPerformanceMetric({
+    required String value,
     required String label,
-    required Color accentColor,
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
   }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceAlt,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              style: TextStyle(
+                color: AppTheme.textDark,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Reusable Widgets ─────────────────────────────────────────
+
+class _AvatarInitial extends StatelessWidget {
+  final String initial;
+  const _AvatarInitial(this.initial);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusItem extends StatelessWidget {
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
+  final String time;
+  final String label;
+  final Color accentColor;
+
+  const _StatusItem({
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.time,
+    required this.label,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -772,149 +783,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
-            color: _textMuted,
+            color: AppTheme.textMuted,
             fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
-  }
-
-  Widget _buildStatusDivider() {
-    return Container(width: 1, height: 56, color: _dividerColor);
-  }
-
-  String _calculateDuration() {
-    if (_controller.clockInTime == '--:--') return '--:--';
-    if (_controller.clockOutTime == '--:--') {
-      if (_controller.timestampMasuk != null) {
-        final diff = DateTime.now().difference(_controller.timestampMasuk!);
-        final h = diff.inHours.toString().padLeft(2, '0');
-        final m = (diff.inMinutes % 60).toString().padLeft(2, '0');
-        return '$h:$m';
-      }
-      return '--:--';
-    }
-    if (_controller.timestampMasuk != null &&
-        _controller.timestampPulang != null) {
-      final diff = _controller.timestampPulang!.difference(
-        _controller.timestampMasuk!,
-      );
-      final h = diff.inHours.toString().padLeft(2, '0');
-      final m = (diff.inMinutes % 60).toString().padLeft(2, '0');
-      return '$h:$m';
-    }
-    return '--:--';
-  }
-
-  // ─── Bottom Navigation Bar ────────────────────────────────
-
-  Widget _buildBottomNav() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F1C28),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BottomNavigationBar(
-              currentIndex: _currentNavIndex,
-              onTap: (index) async {
-                if (index == 1) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => HistoryPage(
-                        records: SessionManager.getRecords(widget.name),
-                      ),
-                    ),
-                  );
-                } else if (index == 2) {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MessagesPage()),
-                  );
-
-                  if (!mounted) return;
-                  setState(() => _currentNavIndex = 0);
-                } else if (index == 3) {
-                  final updatedEmployee =
-                      await Navigator.push<Map<String, dynamic>>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MorePage(
-                            name: _employeeName,
-                            phoneNumber: _employeePhoneNumber,
-                            profilePhotoUrl: _employeeProfilePhotoUrl,
-                            onRegisterFace: _onRegisterFace,
-                            records: SessionManager.getRecords(widget.name),
-                          ),
-                        ),
-                      );
-
-                  if (!mounted) return;
-
-                  if (updatedEmployee != null) {
-                    _applyUpdatedEmployee(updatedEmployee);
-                  }
-
-                  setState(() => _currentNavIndex = 0);
-                } else {
-                  setState(() => _currentNavIndex = index);
-                }
-              },
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: const Color(0xFF0F1C28),
-              selectedItemColor: Colors.white,
-              unselectedItemColor: _textMuted,
-              selectedFontSize: 12,
-              unselectedFontSize: 11,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-              elevation: 0,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today_rounded),
-                  label: 'Absensi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.notifications_outlined),
-                  label: 'Notifikasi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.more_horiz),
-                  label: 'More',
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _applyUpdatedEmployee(Map<String, dynamic> employee) {
-    setState(() {
-      _employeeName = employee['name'] as String? ?? _employeeName;
-      _employeePhoneNumber =
-          employee['phone'] as String? ?? _employeePhoneNumber;
-      _employeeProfilePhotoUrl =
-          employee['profile_photo_url'] as String? ?? _employeeProfilePhotoUrl;
-    });
   }
 }

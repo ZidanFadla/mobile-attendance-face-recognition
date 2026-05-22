@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/app_theme.dart';
 import '../services/message_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -37,31 +38,18 @@ class _MessagesPageState extends State<MessagesPage> {
     super.dispose();
   }
 
-  IconData _typeIcon(String type) {
-    switch (type) {
-      case 'image':
-        return Icons.image_rounded;
-      case 'mixed':
-        return Icons.perm_media_rounded;
-      case 'file':
-        return Icons.attach_file_rounded;
-      default:
-        return Icons.mail_rounded;
-    }
-  }
+  IconData _typeIcon(String type) => switch (type) {
+    'image' => Icons.image_rounded,
+    'mixed' => Icons.perm_media_rounded,
+    'file' => Icons.attach_file_rounded,
+    _ => Icons.mail_rounded,
+  };
 
-  Color _typeColor(String type) {
-    switch (type) {
-      case 'image':
-        return Colors.amber;
-      case 'mixed':
-        return Colors.amber;
-      case 'file':
-        return Colors.blue;
-      default:
-        return AppTheme.armyGreen;
-    }
-  }
+  Color _typeColor(String type) => switch (type) {
+    'image' || 'mixed' => Colors.amber,
+    'file' => Colors.blue,
+    _ => AppTheme.armyGreen,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +58,9 @@ class _MessagesPageState extends State<MessagesPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
+        automaticallyImplyLeading: false,
         scrolledUnderElevation: 1,
-        title: const Text(
+        title: Text(
           'Pesan dari Admin',
           style: TextStyle(
             color: AppTheme.textDark,
@@ -79,10 +68,9 @@ class _MessagesPageState extends State<MessagesPage> {
             fontSize: 18,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
       ),
       body: _loading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: AppTheme.armyGreen),
             )
           : _messages.isEmpty
@@ -108,22 +96,30 @@ class _MessagesPageState extends State<MessagesPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inbox_rounded,
-            size: 64,
-            color: AppTheme.textMuted.withValues(alpha: 0.3),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceAlt,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Icon(
+              Icons.inbox_rounded,
+              size: 36,
+              color: AppTheme.textMuted.withValues(alpha: 0.4),
+            ),
           ),
-          const SizedBox(height: 12),
-          const Text(
+          const SizedBox(height: 16),
+          Text(
             'Belum ada pesan',
             style: TextStyle(
               color: AppTheme.textMuted,
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
+          const SizedBox(height: 6),
+          Text(
             'Pesan dari admin akan muncul di sini',
             style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
           ),
@@ -193,7 +189,7 @@ class _MessagesPageState extends State<MessagesPage> {
                       children: [
                         Text(
                           sender,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
                             color: AppTheme.textDark,
@@ -223,7 +219,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           Container(
                             width: 7,
                             height: 7,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppTheme.success,
                               shape: BoxShape.circle,
                             ),
@@ -237,7 +233,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         preview,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppTheme.textDark,
                           fontSize: 14,
                           height: 1.4,
@@ -260,7 +256,7 @@ class _MessagesPageState extends State<MessagesPage> {
                                   height: 110,
                                   color: AppTheme.surfaceAlt,
                                   alignment: Alignment.center,
-                                  child: const Text(
+                                  child: Text(
                                     'Foto tidak bisa dimuat',
                                     style: TextStyle(
                                       color: AppTheme.textMuted,
@@ -300,7 +296,7 @@ class _MessagesPageState extends State<MessagesPage> {
                               Flexible(
                                 child: Text(
                                   fileName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     color: AppTheme.armyGreen,
                                     fontWeight: FontWeight.w600,
@@ -316,7 +312,7 @@ class _MessagesPageState extends State<MessagesPage> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.schedule_rounded,
                           size: 13,
                           color: AppTheme.textMuted,
@@ -325,7 +321,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         Expanded(
                           child: Text(
                             '$sentAt - $timeAgo',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppTheme.textMuted,
                             ),
@@ -369,7 +365,7 @@ class _MessagesPageState extends State<MessagesPage> {
         maxChildSize: 0.9,
         builder: (context, controller) {
           return Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppTheme.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
@@ -406,7 +402,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         children: [
                           Text(
                             sender,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppTheme.textDark,
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -415,7 +411,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           const SizedBox(height: 3),
                           Text(
                             sentAt,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppTheme.textMuted,
                               fontSize: 12,
                             ),
@@ -429,7 +425,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   const SizedBox(height: 22),
                   Text(
                     content,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontSize: 15,
                       height: 1.55,
@@ -440,7 +436,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   const SizedBox(height: 22),
                   Text(
                     imageName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -460,7 +456,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           height: 180,
                           color: AppTheme.surfaceAlt,
                           alignment: Alignment.center,
-                          child: const Text(
+                          child: Text(
                             'Foto tidak bisa dimuat',
                             style: TextStyle(color: AppTheme.textMuted),
                           ),
@@ -493,13 +489,13 @@ class _MessagesPageState extends State<MessagesPage> {
                           Expanded(
                             child: Text(
                               fileName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.armyGreen,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Icons.open_in_new_rounded,
                             color: AppTheme.textMuted,
                             size: 18,
@@ -522,22 +518,7 @@ class _MessagesPageState extends State<MessagesPage> {
     final normalized = raw.contains('T') ? raw : raw.replaceFirst(' ', 'T');
     final parsed = DateTime.tryParse(normalized);
     if (parsed == null) return raw;
-    final local = parsed.toLocal();
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    return '${local.day.toString().padLeft(2, '0')} ${months[local.month - 1]} ${local.year}, ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return DateFormat('dd MMM yyyy, HH:mm').format(parsed.toLocal());
   }
 
   Future<void> _openFile(String url) async {

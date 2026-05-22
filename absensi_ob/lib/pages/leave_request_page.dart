@@ -149,6 +149,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
       );
     } catch (e) {
       _handleSubmitError(_cleanError(e));
+
     }
   }
 
@@ -159,8 +160,8 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
-        title: const Text(
+        iconTheme: IconThemeData(color: AppTheme.textDark),
+        title: Text(
           'Pengajuan Cuti',
           style: TextStyle(
             color: AppTheme.textDark,
@@ -188,7 +189,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
-            const _HeaderCard(
+            _HeaderCard(
               icon: Icons.event_available_rounded,
               color: AppTheme.armyGreen,
               title: 'Form Cuti Karyawan',
@@ -235,14 +236,14 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
                   onChanged: (value) => setState(() => _halfDay = value),
                   contentPadding: EdgeInsets.zero,
                   activeThumbColor: AppTheme.armyGreen,
-                  title: const Text(
+                  title: Text(
                     'Setengah hari',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textDark,
                     ),
                   ),
-                  subtitle: const Text(
+                  subtitle: Text(
                     'Aktifkan jika cuti hanya sebagian hari.',
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                   ),
@@ -455,7 +456,7 @@ class _HeaderCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
@@ -464,7 +465,7 @@ class _HeaderCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.35,
@@ -499,7 +500,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontSize: 15,
               fontWeight: FontWeight.w800,
@@ -558,7 +559,7 @@ class _BalanceItem extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontWeight: FontWeight.w900,
               fontSize: 16,
@@ -567,7 +568,7 @@ class _BalanceItem extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             label,
-            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
           ),
         ],
       ),
@@ -636,12 +637,12 @@ class _DatePickerTile extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
             ),
             const SizedBox(height: 7),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.calendar_month_rounded,
                   size: 17,
                   color: AppTheme.armyGreen,
@@ -651,7 +652,7 @@ class _DatePickerTile extends StatelessWidget {
                   child: Text(
                     display,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
@@ -730,7 +731,7 @@ class _AttachmentTile extends StatelessWidget {
                 color: AppTheme.armyGreenLight,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.attach_file_rounded,
                 color: AppTheme.armyGreen,
               ),
@@ -742,7 +743,7 @@ class _AttachmentTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
@@ -751,7 +752,7 @@ class _AttachmentTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 12,
                     ),
@@ -762,10 +763,10 @@ class _AttachmentTile extends StatelessWidget {
             if (hasAttachment && onRemove != null)
               IconButton(
                 onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded, color: AppTheme.error),
+                icon: Icon(Icons.close_rounded, color: AppTheme.error),
               )
             else
-              const Icon(
+              Icon(
                 Icons.add_circle_outline_rounded,
                 color: AppTheme.armyGreen,
               ),
@@ -803,13 +804,13 @@ class _SourceTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 14,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right_rounded,
         color: AppTheme.textMuted,
       ),
@@ -841,7 +842,7 @@ class _SummaryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         row.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 12,
                         ),
@@ -849,7 +850,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                     Text(
                       row.value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppTheme.textDark,
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
@@ -924,20 +925,20 @@ class _PrimaryButton extends StatelessWidget {
 InputDecoration _inputDecoration(String label) {
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: AppTheme.textMuted),
+    labelStyle: TextStyle(color: AppTheme.textMuted),
     filled: true,
     fillColor: AppTheme.surfaceAlt,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.border),
+      borderSide: BorderSide(color: AppTheme.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.border),
+      borderSide: BorderSide(color: AppTheme.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.armyGreen, width: 1.4),
+      borderSide: BorderSide(color: AppTheme.armyGreen, width: 1.4),
     ),
   );
 }

@@ -1,4 +1,5 @@
 import '../models/attendance_record.dart';
+import 'api_service.dart';
 
 class SessionManager {
   static final Map<String, List<AttendanceRecord>> _attendanceData = {};
@@ -27,5 +28,42 @@ class SessionManager {
       }
     }
     return null;
+  }
+
+  /// Muat riwayat absensi dari database API lalu simpan ke memori lokal.
+  /// Dipanggil sekali saat login / MainShell dimuat.
+  static Future<void> loadFromApi(String name) async {
+    try {
+      final list = await ApiService.fetchAttendanceHistory();
+      final records = <AttendanceRecord>[];
+
+      for (final item in list) {
+        records.add(AttendanceRecord(
+          name: item['name']?.toString() ?? name,
+          phoneNumber: item['phone']?.toString() ?? '',
+          timestamp: DateTime.parse(item['timestamp'] as String),
+          type: item['type']?.toString() ?? '',
+          latitude: _toDouble(item['latitude']),
+          longitude: _toDouble(item['longitude']),
+          locationName: item['location_name']?.toString() ?? '',
+        ));
+      }
+
+      _attendanceData[name] = records;
+    } catch (_) {
+      // Jika gagal fetch, biarkan data tetap kosong / data sesi sebelumnya
+    }
+  }
+
+  /// Bersihkan data saat logout
+  static void clear() {
+    _attendanceData.clear();
+  }
+
+  static double _toDouble(dynamic v) {
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
   }
 }

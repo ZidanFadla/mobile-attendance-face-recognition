@@ -10,8 +10,7 @@ import '../services/face_api_service.dart';
 import '../services/location_service.dart';
 import '../services/session_manager.dart';
 
-/// Hasil operasi absensi — digunakan untuk komunikasi antara
-/// controller dan UI tanpa UI harus tahu detail prosesnya.
+/// Result returned from attendance operations.
 class AttendanceResult {
   final bool success;
   final String message;
@@ -24,14 +23,13 @@ class AttendanceResult {
   });
 }
 
-/// AttendanceController menyimpan SEMUA logika bisnis absensi.
-/// Menggunakan [ChangeNotifier] sehingga UI rebuild otomatis via [addListener].
+/// Holds all attendance business logic.
+/// Uses [ChangeNotifier] so the UI rebuilds automatically via [addListener].
 class AttendanceController extends ChangeNotifier {
-  // ─── Info User ──────────────────────────────────────────────
   final String name;
   final String phoneNumber;
 
-  // ─── State ──────────────────────────────────────────────────
+  // State
   bool isClockedIn = false;
   bool isFaceRegistered = false;
   bool isCheckingFace = true;
@@ -49,17 +47,13 @@ class AttendanceController extends ChangeNotifier {
   double? longitudePulang;
   String? alamatMasuk;
   String? alamatPulang;
-
-  // ✅ Timestamp disimpan di controller — bukan DateTime.now() di build()
   DateTime? timestampMasuk;
   DateTime? timestampPulang;
 
   AttendanceController({required this.name, required this.phoneNumber});
 
-  // ─── Init ────────────────────────────────────────────────────
-
-  /// Dipanggil sekali saat HomePage.initState().
-  /// Return true jika karyawan belum registrasi wajah.
+  /// Called once in HomePage.initState().
+  /// Returns true if the employee hasn't registered their face yet.
   Future<bool> init() async {
     _loadTodayStatus();
     return await _fetchFaceRegistrationStatus();
@@ -100,24 +94,20 @@ class AttendanceController extends ChangeNotifier {
     return !isFaceRegistered;
   }
 
-  // ─── Clock In & Out ─────────────────────────────────────────
+  // ── Clock In & Out ──
 
-  /// Absen masuk — delegasi ke _processAttendance.
   Future<AttendanceResult> clockIn(File photo) =>
       _processAttendance(photo, 'Masuk');
 
-  /// Absen pulang — delegasi ke _processAttendance.
   Future<AttendanceResult> clockOut(File photo) =>
       _processAttendance(photo, 'Pulang');
 
-  /// ✅ Satu implementasi untuk clock in DAN clock out.
-  /// Sebelumnya ada 140 baris duplikasi — sekarang dikompres menjadi satu method.
+  /// Unified implementation for both clock in and clock out.
   Future<AttendanceResult> _processAttendance(
     File photoFile,
     String type,
   ) async {
     try {
-      // 1. Verifikasi wajah
       _setLoading(true, '🔍 Memverifikasi wajah...\nMohon tunggu sebentar');
       final faceResult = await FaceApiService.verifyFace(
         filePath: photoFile.path,
@@ -129,7 +119,6 @@ class AttendanceController extends ChangeNotifier {
         return AttendanceResult(success: false, message: faceResult.message);
       }
 
-      // 2. Ambil lokasi
       _setLoading(true, '📍 Mengambil lokasi...');
       final position = await LocationService.getCurrentLocation();
       final placemarks = await placemarkFromCoordinates(
@@ -140,7 +129,6 @@ class AttendanceController extends ChangeNotifier {
       final locationName =
           '${place.street}, ${place.subLocality}, ${place.locality}';
 
-      // 3. Simpan ke server & local session
       _setLoading(true, '💾 Menyimpan data absensi...');
       final now = DateTime.now();
       final formattedTime = DateFormat('HH:mm').format(now);
@@ -165,7 +153,6 @@ class AttendanceController extends ChangeNotifier {
 
       SessionManager.addRecord(name, record);
 
-      // 4. Update state berdasarkan tipe
       if (type == 'Masuk') {
         isClockedIn = true;
         clockInTime = formattedTime;
@@ -173,14 +160,14 @@ class AttendanceController extends ChangeNotifier {
         latitudeMasuk = position.latitude;
         longitudeMasuk = position.longitude;
         alamatMasuk = locationName;
-        timestampMasuk = now; // ✅ simpan timestamp yang benar
+        timestampMasuk = now;
       } else {
         clockOutTime = formattedTime;
         photoPulang = photoFile;
         latitudePulang = position.latitude;
         longitudePulang = position.longitude;
         alamatPulang = locationName;
-        timestampPulang = now; // ✅ simpan timestamp yang benar
+        timestampPulang = now;
       }
 
       _setLoading(false);
@@ -192,7 +179,6 @@ class AttendanceController extends ChangeNotifier {
         time: formattedTime,
       );
     } on TimeoutException {
-      // ✅ Handle timeout request HTTP
       _setLoading(false);
       return const AttendanceResult(
         success: false,
@@ -200,7 +186,6 @@ class AttendanceController extends ChangeNotifier {
             '⏱️ Server tidak merespons.\nPastikan terhubung ke jaringan yang benar dan coba lagi.',
       );
     } on Exception catch (e) {
-      // ✅ Handle semua error lainnya (GPS mati, jaringan putus, dll)
       _setLoading(false);
       return AttendanceResult(
         success: false,
@@ -210,7 +195,7 @@ class AttendanceController extends ChangeNotifier {
     }
   }
 
-  // ─── Register Face ───────────────────────────────────────────
+  // ── Register Face ──
 
   Future<AttendanceResult> registerFace(List<File> photos) async {
     try {
@@ -258,8 +243,6 @@ class AttendanceController extends ChangeNotifier {
       );
     }
   }
-
-  // ─── Helper ──────────────────────────────────────────────────
 
   void _setLoading(bool loading, [String message = '']) {
     isLoading = loading;

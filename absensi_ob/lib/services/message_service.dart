@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
@@ -8,6 +9,8 @@ import 'token_storage.dart';
 /// Polling interval: 10 detik.
 class MessageService {
   MessageService._();
+
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
 
   static Timer? _pollingTimer;
   static Function(List<Map<String, dynamic>>)? _onNewMessages;
@@ -59,6 +62,7 @@ class MessageService {
           final messages = List<Map<String, dynamic>>.from(data['data'] ?? []);
           final unread = data['unread'] as int? ?? 0;
 
+          unreadCountNotifier.value = unread;
           _onNewMessages?.call(messages);
 
           // Notify only if unread count changed
@@ -114,6 +118,7 @@ class MessageService {
           .timeout(const Duration(seconds: 10));
 
       _lastKnownCount = 0;
+      unreadCountNotifier.value = 0;
       _onUnreadCount?.call(0);
     } catch (_) {
       // Silently ignore

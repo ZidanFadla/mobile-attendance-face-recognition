@@ -1,21 +1,21 @@
-import 'package:absensi_ob/models/attendance_record.dart';
-import 'package:absensi_ob/pages/cash_advance_request_page.dart';
-import 'package:absensi_ob/pages/leave_request_page.dart';
-import 'package:absensi_ob/pages/login_page.dart';
-import 'package:absensi_ob/pages/profile_settings_page.dart';
-import 'package:absensi_ob/pages/request_history_page.dart';
-import 'package:absensi_ob/pages/user_guide_page.dart';
-import 'package:absensi_ob/services/token_storage.dart';
 import 'package:flutter/material.dart';
-
+import 'cash_advance_request_page.dart';
+import 'leave_request_page.dart';
+import 'login_page.dart';
+import 'profile_settings_page.dart';
+import 'request_history_page.dart';
+import 'user_guide_page.dart';
 import '../core/app_theme.dart';
+import '../services/session_manager.dart';
+import '../services/token_storage.dart';
 
-class MorePage extends StatefulWidget {
+/// More tab — stateless display. Data flows from [MainShell].
+class MorePage extends StatelessWidget {
   final String name;
   final String phoneNumber;
   final String? profilePhotoUrl;
   final VoidCallback onRegisterFace;
-  final List<AttendanceRecord> records;
+  final ValueChanged<Map<String, dynamic>> onEmployeeUpdated;
 
   const MorePage({
     super.key,
@@ -23,36 +23,8 @@ class MorePage extends StatefulWidget {
     required this.phoneNumber,
     this.profilePhotoUrl,
     required this.onRegisterFace,
-    required this.records,
+    required this.onEmployeeUpdated,
   });
-
-  @override
-  State<MorePage> createState() => _MorePageState();
-}
-
-class _MorePageState extends State<MorePage> {
-  late String _name;
-  late String _phoneNumber;
-  String? _profilePhotoUrl;
-  Map<String, dynamic>? _updatedEmployee;
-
-  @override
-  void initState() {
-    super.initState();
-    _name = widget.name;
-    _phoneNumber = widget.phoneNumber;
-    _profilePhotoUrl = widget.profilePhotoUrl;
-  }
-
-  void _applyUpdatedEmployee(Map<String, dynamic> employee) {
-    setState(() {
-      _updatedEmployee = employee;
-      _name = employee['name'] as String? ?? _name;
-      _phoneNumber = employee['phone'] as String? ?? _phoneNumber;
-      _profilePhotoUrl =
-          employee['profile_photo_url'] as String? ?? _profilePhotoUrl;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,26 +33,27 @@ class _MorePageState extends State<MorePage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        title: const Text(
+        automaticallyImplyLeading: false,
+        title: Text(
           'More',
           style: TextStyle(
             color: AppTheme.textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
           _ProfileHeader(
-            name: _name,
-            phoneNumber: _phoneNumber,
-            profilePhotoUrl: _profilePhotoUrl,
+            name: name,
+            phoneNumber: phoneNumber,
+            profilePhotoUrl: profilePhotoUrl,
           ),
-          const SizedBox(height: 18),
-          _SectionTitle('Akun & Presensi'),
-          _MenuTile(
+          const SizedBox(height: 20),
+          const _SectionTitle('Akun & Presensi'),
+          _AnimatedMenuTile(
+            index: 0,
             icon: Icons.manage_accounts_rounded,
             color: AppTheme.accentOrange,
             title: 'Profile Settings',
@@ -90,107 +63,103 @@ class _MorePageState extends State<MorePage> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ProfileSettingsPage(
-                    name: _name,
-                    phoneNumber: _phoneNumber,
-                    profilePhotoUrl: _profilePhotoUrl,
+                    name: name,
+                    phoneNumber: phoneNumber,
+                    profilePhotoUrl: profilePhotoUrl,
                   ),
                 ),
               );
-              if (!context.mounted || employee == null) return;
-              _applyUpdatedEmployee(employee);
-              Navigator.pop(context, employee);
+              if (employee != null) onEmployeeUpdated(employee);
             },
           ),
-          _MenuTile(
+          _AnimatedMenuTile(
+            index: 1,
             icon: Icons.face_retouching_natural_rounded,
             color: AppTheme.armyGreen,
             title: 'Registrasi ulang wajah',
             subtitle: 'Perbarui data wajah jika verifikasi sering gagal.',
-            onTap: () {
-              Navigator.pop(context, _updatedEmployee);
-              widget.onRegisterFace();
-            },
+            onTap: onRegisterFace,
           ),
-          _MenuTile(
+          _AnimatedMenuTile(
+            index: 2,
             icon: Icons.payments_rounded,
             color: AppTheme.success,
             title: 'Pengajuan Kasbon',
             subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CashAdvanceRequestPage(),
-                ),
-              );
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CashAdvanceRequestPage(),
+              ),
+            ),
           ),
-          _MenuTile(
+          _AnimatedMenuTile(
+            index: 3,
             icon: Icons.receipt_long_rounded,
             color: const Color(0xFF0EA5E9),
             title: 'Riwayat Kasbon',
             subtitle: 'Lihat status pengajuan dan total kasbon yang disetujui.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const RequestHistoryPage(
-                    type: RequestHistoryType.cashAdvance,
-                  ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const RequestHistoryPage(
+                  type: RequestHistoryType.cashAdvance,
                 ),
-              );
-            },
+              ),
+            ),
           ),
-          _MenuTile(
+          _AnimatedMenuTile(
+            index: 4,
             icon: Icons.event_available_rounded,
             color: const Color(0xFFF59E0B),
             title: 'Pengajuan Cuti',
             subtitle: 'Pengajuan Cuti Ke Perusahaan Melalui Aplikasi.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LeaveRequestPage()),
-              );
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LeaveRequestPage()),
+            ),
           ),
-          _MenuTile(
+          _AnimatedMenuTile(
+            index: 5,
             icon: Icons.event_note_rounded,
             color: const Color(0xFF8B5CF6),
             title: 'Riwayat Cuti',
             subtitle:
                 'Pantau pengajuan cuti yang menunggu, disetujui, atau ditolak.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const RequestHistoryPage(type: RequestHistoryType.leave),
-                ),
-              );
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const RequestHistoryPage(type: RequestHistoryType.leave),
+              ),
+            ),
           ),
-          const SizedBox(height: 18),
-          _SectionTitle('Bantuan'),
-          _MenuTile(
+          const SizedBox(height: 20),
+          const _SectionTitle('Tampilan'),
+          const _ThemeToggleCard(),
+          const SizedBox(height: 20),
+          const _SectionTitle('Bantuan'),
+          _AnimatedMenuTile(
+            index: 6,
             icon: Icons.menu_book_rounded,
             color: const Color(0xFF0EA5E9),
             title: 'Panduan Pengguna Aplikasi',
             subtitle: 'Lihat cara menggunakan fitur utama aplikasi.',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UserGuidePage()),
-              );
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UserGuidePage()),
+            ),
           ),
-          const SizedBox(height: 18),
-          _MenuTile(
+          const SizedBox(height: 20),
+          _AnimatedMenuTile(
+            index: 7,
             icon: Icons.logout_rounded,
             color: AppTheme.error,
             title: 'Logout',
             subtitle: 'Keluar dari akun karyawan di perangkat ini.',
             onTap: () async {
               await TokenStorage.clearToken();
+              SessionManager.clear();
               if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
@@ -204,6 +173,8 @@ class _MorePageState extends State<MorePage> {
     );
   }
 }
+
+// ── Reusable Widgets ─────────────────────────────────────────
 
 class _ProfileHeader extends StatelessWidget {
   final String name;
@@ -219,23 +190,14 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
-    final photoUrl = profilePhotoUrl;
-    final imageProvider = photoUrl != null && photoUrl.isNotEmpty
-        ? NetworkImage(photoUrl)
-        : null;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [AppTheme.cardShadow],
       ),
       child: Row(
         children: [
@@ -247,8 +209,8 @@ class _ProfileHeader extends StatelessWidget {
               gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
             ),
             clipBehavior: Clip.antiAlias,
-            child: imageProvider != null
-                ? Image(image: imageProvider, fit: BoxFit.cover)
+            child: profilePhotoUrl != null && profilePhotoUrl!.isNotEmpty
+                ? Image.network(profilePhotoUrl!, fit: BoxFit.cover)
                 : Center(
                     child: Text(
                       initial,
@@ -269,7 +231,7 @@ class _ProfileHeader extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textDark,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -278,7 +240,7 @@ class _ProfileHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   phoneNumber,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 13,
                   ),
@@ -294,7 +256,6 @@ class _ProfileHeader extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String text;
-
   const _SectionTitle(this.text);
 
   @override
@@ -303,7 +264,7 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 15,
@@ -313,14 +274,16 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _MenuTile extends StatelessWidget {
+class _AnimatedMenuTile extends StatefulWidget {
+  final int index;
   final IconData icon;
   final Color color;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
-  const _MenuTile({
+  const _AnimatedMenuTile({
+    required this.index,
     required this.icon,
     required this.color,
     required this.title,
@@ -329,50 +292,164 @@ class _MenuTile extends StatelessWidget {
   });
 
   @override
+  State<_AnimatedMenuTile> createState() => _AnimatedMenuTileState();
+}
+
+class _AnimatedMenuTileState extends State<_AnimatedMenuTile> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(14),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 300 + (widget.index * 50)),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - value)),
+            child: child,
           ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: AppTheme.textDark,
-            fontWeight: FontWeight.w800,
-            fontSize: 14,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 3),
-          child: Text(
-            subtitle,
-            style: const TextStyle(
-              color: AppTheme.textMuted,
-              fontSize: 12,
-              height: 1.3,
+        );
+      },
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 120),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 6,
+              ),
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: widget.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(widget.icon, color: widget.color, size: 22),
+              ),
+              title: Text(
+                widget.title,
+                style: TextStyle(
+                  color: AppTheme.textDark,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text(
+                  widget.subtitle,
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.textMuted,
+              ),
             ),
           ),
         ),
-        trailing: const Icon(
-          Icons.chevron_right_rounded,
-          color: AppTheme.textMuted,
-        ),
       ),
+    );
+  }
+}
+
+class _ThemeToggleCard extends StatelessWidget {
+  const _ThemeToggleCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppTheme.isDarkModeNotifier,
+      builder: (context, isDark, child) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.border),
+            boxShadow: [AppTheme.cardShadow],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Material(
+              color: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: isDark 
+                            ? const Color(0xFF1E3A5F) 
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        color: isDark ? const Color(0xFFFFA726) : const Color(0xFF0F172A),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Mode Gelap',
+                            style: TextStyle(
+                              color: AppTheme.textDark,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            isDark ? 'Kurangi ketegangan mata di malam hari.' : 'Tampilan bersih untuk siang hari.',
+                            style: TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: isDark,
+                      activeThumbColor: AppTheme.btnGreen,
+                      onChanged: (val) {
+                        AppTheme.isDarkModeNotifier.value = val;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

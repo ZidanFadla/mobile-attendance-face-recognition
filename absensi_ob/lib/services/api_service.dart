@@ -161,6 +161,21 @@ class ApiService {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> fetchAttendanceHistory() async {
+    final response = await http
+        .get(
+          Uri.parse('$_baseUrl/attendance'),
+          headers: await _headers(authenticated: true),
+        )
+        .timeout(_timeout);
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (data['success'] == true && data['data'] is List) {
+      return List<Map<String, dynamic>>.from(data['data']);
+    }
+    return [];
+  }
+
   // ─── Requests ───────────────────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> submitLeaveRequest({

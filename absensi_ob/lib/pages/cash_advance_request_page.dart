@@ -26,8 +26,8 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
   final _accountController = TextEditingController();
   final _imagePicker = ImagePicker();
 
-  String _purpose = 'Kebutuhan Mendesak';
-  String _repayment = 'Potong Gaji Bulan Ini';
+  String _purpose = 'Kebutuhan Medis';
+  String _repayment = 'Potong Gaji 1x';
   DateTime? _neededDate;
   File? _attachment;
   String? _attachmentName;
@@ -35,18 +35,19 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
   bool _isSubmitting = false;
 
   final _purposes = const [
-    'Kebutuhan Mendesak',
-    'Kesehatan',
-    'Keluarga',
-    'Transportasi',
-    'Pendidikan',
+    'Kebutuhan Medis',
+    'Pendidikan Anak',
+    'Perbaikan Rumah',
+    'Kendaraan Bermotor',
+    'Keperluan Darurat',
     'Lainnya',
   ];
 
   final _repayments = const [
-    'Potong Gaji Bulan Ini',
-    'Cicilan 2 Bulan',
-    'Cicilan 3 Bulan',
+    'Potong Gaji 1x',
+    'Potong Gaji 2x',
+    'Potong Gaji 3x',
+    'Transfer Mandiri',
   ];
 
   @override
@@ -70,24 +71,23 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
       if (!mounted) return;
       setState(() => _cashSummary = summary);
     } catch (_) {
-      // Summary is informative; submit validation still happens on server.
+      // Summary is helpful, but the form can still be filled.
     }
   }
 
-  int get _amount {
-    final raw = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    return int.tryParse(raw) ?? 0;
-  }
+  int get _amount => int.tryParse(_amountController.text) ?? 0;
 
   Future<void> _pickNeededDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _neededDate ?? now,
+      initialDate: _neededDate ?? now.add(const Duration(days: 1)),
       firstDate: now,
-      lastDate: DateTime(now.year + 1),
+      lastDate: now.add(const Duration(days: 30)),
     );
-    if (picked != null) setState(() => _neededDate = picked);
+
+    if (picked == null) return;
+    setState(() => _neededDate = picked);
   }
 
   Future<void> _submitCashAdvanceRequest() async {
@@ -104,11 +104,11 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
     try {
       final data = await ApiService.submitCashAdvanceRequest(
         amount: _amount,
-        purpose: _purpose,
         neededDate: DateFormat('yyyy-MM-dd').format(_neededDate!),
+        purpose: _purpose,
         repaymentMethod: _repayment,
         reason: _reasonController.text.trim(),
-        disbursementMethod: _nullableText(_bankController),
+        disbursementMethod: _nullableText(_bankController) ?? 'Cash',
         accountNumber: _nullableText(_accountController),
         attachment: _attachment,
       );
@@ -152,8 +152,8 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
-        title: const Text(
+        iconTheme: IconThemeData(color: AppTheme.textDark),
+        title: Text(
           'Pengajuan Kasbon',
           style: TextStyle(
             color: AppTheme.textDark,
@@ -182,7 +182,7 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
-            const _HeaderCard(
+            _HeaderCard(
               icon: Icons.payments_rounded,
               color: AppTheme.success,
               title: 'Form Kasbon Karyawan',
@@ -452,7 +452,7 @@ class _HeaderCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
@@ -461,7 +461,7 @@ class _HeaderCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.35,
@@ -496,7 +496,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontSize: 15,
               fontWeight: FontWeight.w800,
@@ -579,12 +579,12 @@ class _SummaryMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
           ),
           const SizedBox(height: 3),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontWeight: FontWeight.w900,
               fontSize: 14,
@@ -654,7 +654,7 @@ class _DatePickerTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.calendar_month_rounded,
               size: 18,
               color: AppTheme.armyGreen,
@@ -666,7 +666,7 @@ class _DatePickerTile extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 12,
                     ),
@@ -675,7 +675,7 @@ class _DatePickerTile extends StatelessWidget {
                   Text(
                     display,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
@@ -727,7 +727,7 @@ class _AttachmentTile extends StatelessWidget {
                 color: AppTheme.armyGreenLight,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.attach_file_rounded,
                 color: AppTheme.armyGreen,
               ),
@@ -739,7 +739,7 @@ class _AttachmentTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textDark,
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
@@ -748,7 +748,7 @@ class _AttachmentTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 12,
                     ),
@@ -759,10 +759,10 @@ class _AttachmentTile extends StatelessWidget {
             if (hasAttachment && onRemove != null)
               IconButton(
                 onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded, color: AppTheme.error),
+                icon: Icon(Icons.close_rounded, color: AppTheme.error),
               )
             else
-              const Icon(
+              Icon(
                 Icons.add_circle_outline_rounded,
                 color: AppTheme.armyGreen,
               ),
@@ -800,13 +800,13 @@ class _SourceTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppTheme.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 14,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right_rounded,
         color: AppTheme.textMuted,
       ),
@@ -838,7 +838,7 @@ class _SummaryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         row.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 12,
                         ),
@@ -848,7 +848,7 @@ class _SummaryCard extends StatelessWidget {
                       child: Text(
                         row.value,
                         textAlign: TextAlign.right,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppTheme.textDark,
                           fontWeight: FontWeight.w800,
                           fontSize: 12,
@@ -924,20 +924,20 @@ class _PrimaryButton extends StatelessWidget {
 InputDecoration _inputDecoration(String label) {
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: AppTheme.textMuted),
+    labelStyle: TextStyle(color: AppTheme.textMuted),
     filled: true,
     fillColor: AppTheme.surfaceAlt,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.border),
+      borderSide: BorderSide(color: AppTheme.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.border),
+      borderSide: BorderSide(color: AppTheme.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppTheme.success, width: 1.4),
+      borderSide: BorderSide(color: AppTheme.success, width: 1.4),
     ),
   );
 }

@@ -46,14 +46,14 @@ class AppFormField extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             color: AppTheme.textDark,
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+            hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 13),
             prefixIcon: Container(
               margin: const EdgeInsets.all(10),
               padding: const EdgeInsets.all(8),
@@ -76,28 +76,28 @@ class AppFormField extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppTheme.armyGreen,
                 width: 1.5,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppTheme.error),
+              borderSide: BorderSide(color: AppTheme.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppTheme.error, width: 1.5),
+              borderSide: BorderSide(color: AppTheme.error, width: 1.5),
             ),
-            errorStyle: const TextStyle(fontSize: 11, color: AppTheme.error),
+            errorStyle: TextStyle(fontSize: 11, color: AppTheme.error),
           ),
         ),
       ],

@@ -12,8 +12,8 @@ class UserGuidePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textDark),
-        title: const Text(
+        iconTheme: IconThemeData(color: AppTheme.textDark),
+        title: Text(
           'Panduan Pengguna',
           style: TextStyle(
             color: AppTheme.textDark,
@@ -23,12 +23,12 @@ class UserGuidePage extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-        children: const [
-          _HeaderCard(),
-          SizedBox(height: 16),
+        children: [
+          const _HeaderCard(),
+          const SizedBox(height: 16),
           _GuideSection(
             title: 'Mulai Menggunakan Aplikasi',
-            items: [
+            items: const [
               _GuideStep(
                 icon: Icons.login_rounded,
                 title: 'Login akun karyawan',
@@ -43,10 +43,10 @@ class UserGuidePage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           _GuideSection(
             title: 'Absensi Harian',
-            items: [
+            items: const [
               _GuideStep(
                 icon: Icons.fingerprint_rounded,
                 title: 'Absensi masuk',
@@ -67,10 +67,10 @@ class UserGuidePage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           _GuideSection(
             title: 'Pengajuan Karyawan',
-            items: [
+            items: const [
               _GuideStep(
                 icon: Icons.payments_rounded,
                 title: 'Pengajuan kasbon',
@@ -85,10 +85,10 @@ class UserGuidePage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           _GuideSection(
             title: 'Akun dan Bantuan',
-            items: [
+            items: const [
               _GuideStep(
                 icon: Icons.manage_accounts_rounded,
                 title: 'Profile settings',
@@ -119,18 +119,12 @@ class _HeaderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: [AppTheme.cardShadow],
       ),
-      child: const Row(
+      child: Row(
         children: [
           _IconBadge(icon: Icons.menu_book_rounded, color: AppTheme.armyGreen),
-          SizedBox(width: 14),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +137,7 @@ class _HeaderCard extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Text(
                   'Ringkasan langkah penggunaan fitur utama untuk karyawan.',
                   style: TextStyle(
@@ -181,7 +175,7 @@ class _GuideSection extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textDark,
               fontWeight: FontWeight.w800,
               fontSize: 14,
@@ -226,7 +220,7 @@ class _GuideStep extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textDark,
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
@@ -235,7 +229,7 @@ class _GuideStep extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 12,
                     height: 1.4,
