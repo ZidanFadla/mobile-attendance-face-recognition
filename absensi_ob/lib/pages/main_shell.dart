@@ -44,7 +44,9 @@ class _MainShellState extends State<MainShell> {
     _photoUrl = widget.profilePhotoUrl;
 
     _controller = AttendanceController(name: _name, phoneNumber: _phone);
-    _controller.addListener(() => setState(() {}));
+    _controller.addListener(() {
+      if (mounted) setState(() {});
+    });
     _controller.init().then((needsRegistration) {
       if (needsRegistration && mounted) _showRegisterFaceDialog();
     });
@@ -55,10 +57,7 @@ class _MainShellState extends State<MainShell> {
     });
 
     // Start polling admin messages immediately on app startup
-    MessageService.startPolling(
-      onMessages: (_) {},
-      onUnreadCount: (_) {},
-    );
+    MessageService.startPolling(onMessages: (_) {}, onUnreadCount: (_) {});
   }
 
   @override

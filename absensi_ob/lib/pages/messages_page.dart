@@ -46,8 +46,8 @@ class _MessagesPageState extends State<MessagesPage> {
   };
 
   Color _typeColor(String type) => switch (type) {
-    'image' || 'mixed' => Colors.amber,
-    'file' => Colors.blue,
+    'image' || 'mixed' => AppTheme.warning,
+    'file' => AppTheme.info,
     _ => AppTheme.armyGreen,
   };
 
@@ -70,9 +70,7 @@ class _MessagesPageState extends State<MessagesPage> {
         ),
       ),
       body: _loading
-          ? Center(
-              child: CircularProgressIndicator(color: AppTheme.armyGreen),
-            )
+          ? Center(child: CircularProgressIndicator(color: AppTheme.armyGreen))
           : _messages.isEmpty
           ? _emptyState()
           : RefreshIndicator(
@@ -160,7 +158,9 @@ class _MessagesPageState extends State<MessagesPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.isDark
+                  ? Colors.black.withValues(alpha: 0.04)
+                  : Colors.black.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

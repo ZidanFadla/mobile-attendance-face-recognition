@@ -1,18 +1,10 @@
 import 'package:absensi_ob/pages/login_page.dart';
-import 'package:absensi_ob/services/permission_service.dart';
 import 'package:absensi_ob/core/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await PermissionService.requestAllPermissions();
-  } catch (e) {
-    debugPrint('Permission initialization error: $e');
-  }
-
   runApp(const MyApp());
 }
 

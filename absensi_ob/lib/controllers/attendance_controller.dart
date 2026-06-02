@@ -29,6 +29,8 @@ class AttendanceController extends ChangeNotifier {
   final String name;
   final String phoneNumber;
 
+  bool _disposed = false;
+
   // State
   bool isClockedIn = false;
   bool isFaceRegistered = false;
@@ -248,5 +250,18 @@ class AttendanceController extends ChangeNotifier {
     isLoading = loading;
     loadingMessage = message;
     notifyListeners();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

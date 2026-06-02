@@ -8,6 +8,7 @@ import '../core/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
+import '../widgets/request_forms/request_form_widgets.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
   final String name;
@@ -138,7 +139,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _PhotoSourceTile(
+                RequestSourceTile(
                   icon: Icons.photo_camera_rounded,
                   title: 'Ambil Foto',
                   onTap: () {
@@ -146,7 +147,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     _pickProfilePhoto(ImageSource.camera);
                   },
                 ),
-                _PhotoSourceTile(
+                RequestSourceTile(
                   icon: Icons.photo_library_rounded,
                   title: 'Pilih dari Galeri',
                   onTap: () {
@@ -204,15 +205,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(fontSize: 13)),
-        backgroundColor: AppTheme.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    showSuccessSnackbar(context, message);
   }
 
   @override
@@ -473,46 +466,7 @@ class _ProfileSummary extends StatelessWidget {
   }
 }
 
-class _PhotoSourceTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
 
-  const _PhotoSourceTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppTheme.armyGreenLight,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(icon, color: AppTheme.armyGreen, size: 22),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: AppTheme.textDark,
-          fontWeight: FontWeight.w800,
-          fontSize: 14,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: AppTheme.textMuted,
-      ),
-    );
-  }
-}
 
 class _SectionCard extends StatelessWidget {
   final String title;

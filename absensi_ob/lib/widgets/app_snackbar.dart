@@ -20,3 +20,30 @@ void showErrorSnackbar(BuildContext context, String message) {
     ),
   );
 }
+
+/// Shared success snackbar — eliminates duplicated _showSuccess across pages.
+void showSuccessSnackbar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message, style: const TextStyle(fontSize: 13)),
+      backgroundColor: AppTheme.success,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.all(16),
+    ),
+  );
+}
+
+/// Utility: extract error message from Exception, stripping the "Exception: " prefix.
+String cleanExceptionMessage(Object error) {
+  return error.toString().replaceFirst('Exception: ', '');
+}
+
+/// Extension on TextEditingController untuk nullable text helper.
+/// Mengembalikan null jika teks kosong atau hanya whitespace.
+extension NullableTextController on TextEditingController {
+  String? get nullableText {
+    final value = text.trim();
+    return value.isEmpty ? null : value;
+  }
+}

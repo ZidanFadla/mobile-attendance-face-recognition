@@ -70,9 +70,12 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  void _onControllerUpdate() => setState(() {});
+  void _onControllerUpdate() {
+    if (mounted) setState(() {});
+  }
 
   void _updateTime() {
+    if (!mounted) return;
     final now = DateTime.now();
     setState(() {
       _currentTime = DateFormat('HH:mm').format(now);
@@ -82,8 +85,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _ctrl.removeListener(_onControllerUpdate);
     _clockTimer.cancel();
+    _ctrl.removeListener(_onControllerUpdate);
     _pulseController.dispose();
     _ringController.dispose();
     super.dispose();
@@ -94,18 +97,18 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildAppBar(),
-              const SizedBox(height: 12),
-              Expanded(flex: 4, child: _buildMainAttendanceCard()),
+              const SizedBox(height: 16),
+              _buildMainAttendanceCard(),
               const SizedBox(height: 12),
               _buildStatusCard(),
               const SizedBox(height: 12),
-              Expanded(flex: 3, child: _buildPerformanceSection()),
+              _buildPerformanceSection(),
             ],
           ),
         ),
@@ -301,9 +304,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     Text(
                       allDone
                           ? 'Sesi Hari Ini Selesai'
-                          : (showClockOut
-                                ? 'Sedang Bekerja'
-                                : 'Belum Absen'),
+                          : (showClockOut ? 'Sedang Bekerja' : 'Belum Absen'),
                       style: TextStyle(
                         color: AppTheme.textDark,
                         fontSize: 12,
@@ -315,45 +316,55 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ],
           ),
-          
+
           // Middle: Massive Centered Pulsing Face-Scan Button
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
-              child: AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  final scale = allDone ? 1.0 : _pulseAnimation.value;
-                  return Transform.scale(
-                    scale: scale,
-                    child: GestureDetector(
-                      onTap: onTap,
-                      child: AnimatedBuilder(
-                        animation: _ringController,
-                        builder: (context, child) {
-                          return SizedBox(
-                            width: 210,
-                            height: 210,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // State-colored animated outer rings
-                                _buildRing(
-                                  205,
-                                  1.5,
-                                  _ringAnimation.value * 0.35,
-                                  btnColor,
-                                ),
-                                _buildRing(
-                                  175,
-                                  2.2,
-                                  _ringAnimation.value * 0.55,
-                                  btnColor,
-                                ),
-                                _buildRing(145, 1.5, 0.3, btnColor),
-                                // Main button circle with glowing breathing shadow
-                                Container(
-                                  width: 135,
-                                  height: 135,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Adaptive button sizing: 48% of available width, clamped 140–220
+                  final buttonSize = (constraints.maxWidth * 0.48).clamp(140.0, 220.0);
+                  final mainSize = buttonSize * 0.643; // ~135/210 ratio
+                  final ring1 = buttonSize * 0.976;
+                  final ring2 = buttonSize * 0.833;
+                  final ring3 = buttonSize * 0.690;
+
+                  return AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      final scale = allDone ? 1.0 : _pulseAnimation.value;
+                      return Transform.scale(
+                        scale: scale,
+                        child: GestureDetector(
+                          onTap: onTap,
+                          child: AnimatedBuilder(
+                            animation: _ringController,
+                            builder: (context, child) {
+                              return SizedBox(
+                                width: buttonSize,
+                                height: buttonSize,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // State-colored animated outer rings
+                                    _buildRing(
+                                      ring1,
+                                      1.5,
+                                      _ringAnimation.value * 0.35,
+                                      btnColor,
+                                    ),
+                                    _buildRing(
+                                      ring2,
+                                      2.2,
+                                      _ringAnimation.value * 0.55,
+                                      btnColor,
+                                    ),
+                                    _buildRing(ring3, 1.5, 0.3, btnColor),
+                                    // Main button circle with glowing breathing shadow
+                                    Container(
+                                      width: mainSize,
+                                      height: mainSize,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     gradient: LinearGradient(
@@ -363,17 +374,13 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: btnColor.withValues(
-                                          alpha: 0.45,
-                                        ),
+                                        color: btnColor.withValues(alpha: 0.45),
                                         blurRadius:
                                             20 +
-                                            (_pulseAnimation.value - 1.0) *
-                                                150,
+                                            (_pulseAnimation.value - 1.0) * 150,
                                         spreadRadius:
                                             3 +
-                                            (_pulseAnimation.value - 1.0) *
-                                                40,
+                                            (_pulseAnimation.value - 1.0) * 40,
                                         offset: const Offset(0, 4),
                                       ),
                                       BoxShadow(
@@ -387,8 +394,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         btnIcon,
@@ -416,12 +422,14 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   );
                 },
+              );
+                },
               ),
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Bottom: Location Tag
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -722,34 +730,32 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(height: 12),
-          Expanded(
-            child: Row(
-              children: [
-                _buildPerformanceMetric(
-                  value: '$totalPresent Hari',
-                  label: 'Hadir',
-                  icon: Icons.check_circle_outline_rounded,
-                  iconColor: AppTheme.success,
-                  bgColor: AppTheme.success.withValues(alpha: 0.12),
-                ),
-                const SizedBox(width: 8),
-                _buildPerformanceMetric(
-                  value: '${onTimePct.toStringAsFixed(0)}%',
-                  label: 'Tepat Waktu',
-                  icon: Icons.bolt_rounded,
-                  iconColor: AppTheme.warning,
-                  bgColor: AppTheme.warning.withValues(alpha: 0.12),
-                ),
-                const SizedBox(width: 8),
-                _buildPerformanceMetric(
-                  value: '${lateCount}x',
-                  label: 'Terlambat',
-                  icon: Icons.error_outline_rounded,
-                  iconColor: AppTheme.error,
-                  bgColor: AppTheme.error.withValues(alpha: 0.12),
-                ),
-              ],
-            ),
+          Row(
+            children: [
+              _buildPerformanceMetric(
+                value: '$totalPresent Hari',
+                label: 'Hadir',
+                icon: Icons.check_circle_outline_rounded,
+                iconColor: AppTheme.success,
+                bgColor: AppTheme.success.withValues(alpha: 0.12),
+              ),
+              const SizedBox(width: 8),
+              _buildPerformanceMetric(
+                value: '${onTimePct.toStringAsFixed(0)}%',
+                label: 'Tepat Waktu',
+                icon: Icons.bolt_rounded,
+                iconColor: AppTheme.warning,
+                bgColor: AppTheme.warning.withValues(alpha: 0.12),
+              ),
+              const SizedBox(width: 8),
+              _buildPerformanceMetric(
+                value: '${lateCount}x',
+                label: 'Terlambat',
+                icon: Icons.error_outline_rounded,
+                iconColor: AppTheme.error,
+                bgColor: AppTheme.error.withValues(alpha: 0.12),
+              ),
+            ],
           ),
         ],
       ),

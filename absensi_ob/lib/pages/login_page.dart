@@ -6,6 +6,8 @@ import '../core/app_theme.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
 import 'register_page.dart';
+import '../services/permission_service.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -42,6 +44,11 @@ class _LoginPageState extends State<LoginPage>
       end: Offset.zero,
     ).animate(_fadeAnimation);
     _fadeController.forward();
+
+    // Request permissions safely after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PermissionService.requestAllPermissions();
+    });
   }
 
   @override

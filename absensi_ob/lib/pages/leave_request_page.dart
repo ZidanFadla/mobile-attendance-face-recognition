@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../core/app_theme.dart';
 import '../services/api_service.dart';
 import '../widgets/app_snackbar.dart';
+import '../widgets/request_forms/request_form_widgets.dart';
 import 'request_history_page.dart';
 
 class LeaveRequestPage extends StatefulWidget {
@@ -17,12 +17,13 @@ class LeaveRequestPage extends StatefulWidget {
   State<LeaveRequestPage> createState() => _LeaveRequestPageState();
 }
 
-class _LeaveRequestPageState extends State<LeaveRequestPage> {
+class _LeaveRequestPageState extends State<LeaveRequestPage>
+    with AttachmentPickerMixin<LeaveRequestPage> {
   final _formKey = GlobalKey<FormState>();
   final _reasonController = TextEditingController();
   final _contactController = TextEditingController();
   final _handoverController = TextEditingController();
-  final _imagePicker = ImagePicker();
+
 
   String _leaveType = 'Cuti Tahunan';
   DateTime? _startDate;
@@ -114,8 +115,8 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
         endDate: DateFormat('yyyy-MM-dd').format(_endDate!),
         isHalfDay: _halfDay,
         reason: _reasonController.text.trim(),
-        contactDuringLeave: _nullableText(_contactController),
-        handoverNote: _nullableText(_handoverController),
+        contactDuringLeave: _contactController.nullableText,
+        handoverNote: _handoverController.nullableText,
         attachment: _attachment,
       );
 
@@ -134,7 +135,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
           _halfDay = false;
         });
         _loadLeaveBalance();
-        _showSuccess(data['message'] ?? 'Pengajuan cuti berhasil dikirim.');
+        showSuccessSnackbar(context, data['message'] ?? 'Pengajuan cuti berhasil dikirim.');
       } else {
         showErrorSnackbar(
           context,
@@ -148,8 +149,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
         'Response server tidak valid. Periksa konfigurasi API.',
       );
     } catch (e) {
-      _handleSubmitError(_cleanError(e));
-
+      _handleSubmitError(cleanExceptionMessage(e));
     }
   }
 
@@ -189,7 +189,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
-            _HeaderCard(
+            RequestHeaderCard(
               icon: Icons.event_available_rounded,
               color: AppTheme.armyGreen,
               title: 'Form Cuti Karyawan',
@@ -201,10 +201,10 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
               _LeaveBalanceCard(balance: _leaveBalance!),
             ],
             const SizedBox(height: 16),
-            _SectionCard(
+            RequestSectionCard(
               title: 'Detail Cuti',
               children: [
-                _DropdownField(
+                RequestDropdownField(
                   label: 'Jenis Cuti',
                   value: _leaveType,
                   items: _leaveTypes,
@@ -214,18 +214,20 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: _DatePickerTile(
+                      child: RequestDatePickerTile(
                         label: 'Mulai',
                         value: _startDate,
                         onTap: () => _pickDate(isStart: true),
+                        compact: true,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _DatePickerTile(
+                      child: RequestDatePickerTile(
                         label: 'Selesai',
                         value: _endDate,
                         onTap: () => _pickDate(isStart: false),
+                        compact: true,
                       ),
                     ),
                   ],
@@ -251,10 +253,10 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
               ],
             ),
             const SizedBox(height: 14),
-            _SectionCard(
+            RequestSectionCard(
               title: 'Keterangan',
               children: [
-                _TextAreaField(
+                RequestTextAreaField(
                   controller: _reasonController,
                   label: 'Alasan Cuti',
                   hint:
@@ -265,14 +267,14 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
                       : null,
                 ),
                 const SizedBox(height: 14),
-                _TextAreaField(
+                RequestTextAreaField(
                   controller: _contactController,
                   label: 'Kontak Selama Cuti',
                   hint: 'Nomor HP aktif atau kontak darurat.',
                   minLines: 2,
                 ),
                 const SizedBox(height: 14),
-                _TextAreaField(
+                RequestTextAreaField(
                   controller: _handoverController,
                   label: 'Serah Terima Tugas',
                   hint:
@@ -282,7 +284,7 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
               ],
             ),
             const SizedBox(height: 14),
-            _AttachmentTile(
+            RequestAttachmentTile(
               title: 'Lampiran Pendukung',
               subtitle:
                   _attachmentName ??
@@ -297,18 +299,18 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
                     }),
             ),
             const SizedBox(height: 14),
-            _SummaryCard(
+            RequestSummaryCard(
               rows: [
-                _SummaryRow('Jenis', _leaveType),
-                _SummaryRow(
+                SummaryRowData('Jenis', _leaveType),
+                SummaryRowData(
                   'Durasi',
                   _durationDays == 0 ? '-' : '$_durationDays hari',
                 ),
-                _SummaryRow('Status Awal', 'Menunggu persetujuan admin'),
+                SummaryRowData('Status Awal', 'Menunggu persetujuan admin'),
               ],
             ),
             const SizedBox(height: 18),
-            _PrimaryButton(
+            RequestPrimaryButton(
               label: 'Ajukan Cuti',
               icon: Icons.send_rounded,
               isLoading: _isSubmitting,
@@ -320,196 +322,20 @@ class _LeaveRequestPageState extends State<LeaveRequestPage> {
     );
   }
 
-  String? _nullableText(TextEditingController controller) {
-    final value = controller.text.trim();
-    return value.isEmpty ? null : value;
-  }
-
   void _handleSubmitError(String message) {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     showErrorSnackbar(context, message);
   }
 
-  String _cleanError(Object error) {
-    final message = error.toString();
-    return message.replaceFirst('Exception: ', '');
-  }
-
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(fontSize: 13)),
-        backgroundColor: AppTheme.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
-
-  Future<void> _pickAttachment(ImageSource source) async {
-    final image = await _imagePicker.pickImage(
-      source: source,
-      imageQuality: 82,
-      maxWidth: 1400,
-    );
-    if (image == null) return;
-
-    setState(() {
-      _attachment = File(image.path);
-      _attachmentName = image.name;
-    });
-  }
-
   void _showAttachmentSourceSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.border,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                _SourceTile(
-                  icon: Icons.photo_camera_rounded,
-                  title: 'Ambil Foto',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAttachment(ImageSource.camera);
-                  },
-                ),
-                _SourceTile(
-                  icon: Icons.photo_library_rounded,
-                  title: 'Pilih dari Galeri',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAttachment(ImageSource.gallery);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
+    showAttachmentSourceSheet(
+      onAttachmentPicked: (file, name) {
+        setState(() {
+          _attachment = file;
+          _attachmentName = name;
+        });
       },
-    );
-  }
-}
-
-class _HeaderCard extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-
-  const _HeaderCard({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: color, size: 26),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: AppTheme.textDark,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SectionCard({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppTheme.textDark,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 14),
-          ...children,
-        ],
-      ),
     );
   }
 }
@@ -574,371 +400,4 @@ class _BalanceItem extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DropdownField extends StatelessWidget {
-  final String label;
-  final String value;
-  final List<String> items;
-  final ValueChanged<String> onChanged;
-
-  const _DropdownField({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      items: items
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-          .toList(),
-      onChanged: (value) {
-        if (value != null) onChanged(value);
-      },
-      decoration: _inputDecoration(label),
-      borderRadius: BorderRadius.circular(14),
-    );
-  }
-}
-
-class _DatePickerTile extends StatelessWidget {
-  final String label;
-  final DateTime? value;
-  final VoidCallback onTap;
-
-  const _DatePickerTile({
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final display = value == null
-        ? 'Pilih tanggal'
-        : DateFormat('dd MMM yyyy').format(value!);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceAlt,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-            ),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 17,
-                  color: AppTheme.armyGreen,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    display,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AppTheme.textDark,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TextAreaField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final int minLines;
-  final String? Function(String?)? validator;
-
-  const _TextAreaField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.minLines,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      minLines: minLines,
-      maxLines: minLines + 2,
-      validator: validator,
-      decoration: _inputDecoration(label).copyWith(hintText: hint),
-    );
-  }
-}
-
-class _AttachmentTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final bool hasAttachment;
-  final VoidCallback onTap;
-  final VoidCallback? onRemove;
-
-  const _AttachmentTile({
-    required this.title,
-    required this.subtitle,
-    required this.hasAttachment,
-    required this.onTap,
-    this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppTheme.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppTheme.armyGreenLight,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                Icons.attach_file_rounded,
-                color: AppTheme.armyGreen,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: AppTheme.textDark,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (hasAttachment && onRemove != null)
-              IconButton(
-                onPressed: onRemove,
-                icon: Icon(Icons.close_rounded, color: AppTheme.error),
-              )
-            else
-              Icon(
-                Icons.add_circle_outline_rounded,
-                color: AppTheme.armyGreen,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SourceTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _SourceTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppTheme.armyGreenLight,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(icon, color: AppTheme.armyGreen),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: AppTheme.textDark,
-          fontWeight: FontWeight.w800,
-          fontSize: 14,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: AppTheme.textMuted,
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final List<_SummaryRow> rows;
-
-  const _SummaryCard({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.armyGreenLight,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.armyGreen.withValues(alpha: 0.16)),
-      ),
-      child: Column(
-        children: rows
-            .map(
-              (row) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        row.label,
-                        style: TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      row.value,
-                      style: TextStyle(
-                        color: AppTheme.textDark,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-}
-
-class _SummaryRow {
-  final String label;
-  final String value;
-
-  const _SummaryRow(this.label, this.value);
-}
-
-class _PrimaryButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  const _PrimaryButton({
-    required this.label,
-    required this.icon,
-    required this.isLoading,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton.icon(
-        onPressed: isLoading ? null : onPressed,
-        icon: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : Icon(icon, color: Colors.white, size: 19),
-        label: Text(
-          isLoading ? 'Mengirim...' : label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.armyGreen,
-          disabledBackgroundColor: AppTheme.armyGreen.withValues(alpha: 0.55),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 0,
-        ),
-      ),
-    );
-  }
-}
-
-InputDecoration _inputDecoration(String label) {
-  return InputDecoration(
-    labelText: label,
-    labelStyle: TextStyle(color: AppTheme.textMuted),
-    filled: true,
-    fillColor: AppTheme.surfaceAlt,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: AppTheme.border),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: AppTheme.border),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: AppTheme.armyGreen, width: 1.4),
-    ),
-  );
 }
