@@ -30,10 +30,20 @@ class LocationService {
       );
     }
 
-    return await Geolocator.getCurrentPosition(
+    final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 15),
       ),
     );
+
+    if (position.isMocked) {
+      throw Exception(
+        'Lokasi terdeteksi berasal dari aplikasi GPS palsu. '
+        'Nonaktifkan mock location lalu coba lagi.',
+      );
+    }
+
+    return position;
   }
 }

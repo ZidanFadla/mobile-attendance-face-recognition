@@ -88,9 +88,7 @@ class MorePage extends StatelessWidget {
             subtitle: 'Ajukan Kasbon kepada perusahaan melalui aplikasi.',
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const CashAdvanceRequestPage(),
-              ),
+              MaterialPageRoute(builder: (_) => const CashAdvanceRequestPage()),
             ),
           ),
           _AnimatedMenuTile(
@@ -240,10 +238,7 @@ class _ProfileHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   phoneNumber,
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                 ),
               ],
             ),
@@ -394,21 +389,28 @@ class _ThemeToggleCard extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     Container(
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: isDark 
-                            ? const Color(0xFF1E3A5F) 
+                        color: isDark
+                            ? const Color(0xFF1E3A5F)
                             : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
-                        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                        color: isDark ? const Color(0xFFFFA726) : const Color(0xFF0F172A),
+                        isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        color: isDark
+                            ? const Color(0xFFFFA726)
+                            : const Color(0xFF0F172A),
                         size: 20,
                       ),
                     ),
@@ -427,7 +429,9 @@ class _ThemeToggleCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            isDark ? 'Kurangi ketegangan mata di malam hari.' : 'Tampilan bersih untuk siang hari.',
+                            isDark
+                                ? 'Kurangi ketegangan mata di malam hari.'
+                                : 'Tampilan bersih untuk siang hari.',
                             style: TextStyle(
                               color: AppTheme.textMuted,
                               fontSize: 11,

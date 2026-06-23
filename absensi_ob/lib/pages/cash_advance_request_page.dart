@@ -27,7 +27,6 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage>
   final _bankController = TextEditingController();
   final _accountController = TextEditingController();
 
-
   String _purpose = 'Kebutuhan Medis';
   String _repayment = 'Potong Gaji 1x';
   DateTime? _neededDate;
@@ -129,7 +128,10 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage>
           _attachmentName = null;
         });
         _loadCashSummary();
-        showSuccessSnackbar(context, data['message'] ?? 'Pengajuan kasbon berhasil dikirim.');
+        showSuccessSnackbar(
+          context,
+          data['message'] ?? 'Pengajuan kasbon berhasil dikirim.',
+        );
       } else {
         showErrorSnackbar(
           context,
@@ -421,5 +423,3 @@ class _SummaryMetric extends StatelessWidget {
     );
   }
 }
-
-

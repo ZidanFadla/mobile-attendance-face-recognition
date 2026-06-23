@@ -452,10 +452,7 @@ class _ProfileSummary extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   phoneNumber,
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                 ),
               ],
             ),
@@ -465,8 +462,6 @@ class _ProfileSummary extends StatelessWidget {
     );
   }
 }
-
-
 
 class _SectionCard extends StatelessWidget {
   final String title;

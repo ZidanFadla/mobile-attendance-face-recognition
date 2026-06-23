@@ -38,15 +38,17 @@ class SessionManager {
       final records = <AttendanceRecord>[];
 
       for (final item in list) {
-        records.add(AttendanceRecord(
-          name: item['name']?.toString() ?? name,
-          phoneNumber: item['phone']?.toString() ?? '',
-          timestamp: DateTime.parse(item['timestamp'] as String),
-          type: item['type']?.toString() ?? '',
-          latitude: _toDouble(item['latitude']),
-          longitude: _toDouble(item['longitude']),
-          locationName: item['location_name']?.toString() ?? '',
-        ));
+        records.add(
+          AttendanceRecord(
+            name: item['name']?.toString() ?? name,
+            phoneNumber: item['phone']?.toString() ?? '',
+            timestamp: DateTime.parse(item['timestamp'] as String),
+            type: item['type']?.toString() ?? '',
+            latitude: _toDouble(item['latitude']),
+            longitude: _toDouble(item['longitude']),
+            locationName: item['location_name']?.toString() ?? '',
+          ),
+        );
       }
 
       _attendanceData[name] = records;

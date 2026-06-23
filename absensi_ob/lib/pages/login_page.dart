@@ -8,7 +8,6 @@ import '../widgets/app_snackbar.dart';
 import 'register_page.dart';
 import '../services/permission_service.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -206,9 +205,7 @@ class _LoginPageState extends State<LoginPage>
           width: 44,
           height: 3.5,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: AppTheme.gradientArmyGreen,
-            ),
+            gradient: const LinearGradient(colors: AppTheme.gradientArmyGreen),
             borderRadius: BorderRadius.circular(2),
           ),
         ),

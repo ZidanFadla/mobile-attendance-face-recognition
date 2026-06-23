@@ -86,9 +86,7 @@ class _RegisterPageState extends State<RegisterPage>
       barrierDismissible: false,
       builder: (ctx) => Dialog(
         backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         child: Padding(
           padding: const EdgeInsets.all(28),
           child: Column(

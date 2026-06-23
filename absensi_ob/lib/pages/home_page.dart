@@ -324,7 +324,10 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Adaptive button sizing: 48% of available width, clamped 140–220
-                  final buttonSize = (constraints.maxWidth * 0.48).clamp(140.0, 220.0);
+                  final buttonSize = (constraints.maxWidth * 0.48).clamp(
+                    140.0,
+                    220.0,
+                  );
                   final mainSize = buttonSize * 0.643; // ~135/210 ratio
                   final ring1 = buttonSize * 0.976;
                   final ring2 = buttonSize * 0.833;
@@ -365,64 +368,69 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     Container(
                                       width: mainSize,
                                       height: mainSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [btnColor, btnColorDark],
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [btnColor, btnColorDark],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: btnColor.withValues(
+                                              alpha: 0.45,
+                                            ),
+                                            blurRadius:
+                                                20 +
+                                                (_pulseAnimation.value - 1.0) *
+                                                    150,
+                                            spreadRadius:
+                                                3 +
+                                                (_pulseAnimation.value - 1.0) *
+                                                    40,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                          BoxShadow(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                            blurRadius: 4,
+                                            spreadRadius: 1,
+                                            offset: const Offset(0, -2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            btnIcon,
+                                            color: Colors.white,
+                                            size: 56,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            label,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: btnColor.withValues(alpha: 0.45),
-                                        blurRadius:
-                                            20 +
-                                            (_pulseAnimation.value - 1.0) * 150,
-                                        spreadRadius:
-                                            3 +
-                                            (_pulseAnimation.value - 1.0) * 40,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                      BoxShadow(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        blurRadius: 4,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, -2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        btnIcon,
-                                        color: Colors.white,
-                                        size: 56,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        label,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 1.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   );
-                },
-              );
                 },
               ),
             ),

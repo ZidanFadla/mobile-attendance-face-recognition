@@ -46,10 +46,7 @@ class RequestDatePickerTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
         const SizedBox(height: 7),
         Row(
           children: [
@@ -80,11 +77,7 @@ class RequestDatePickerTile extends StatelessWidget {
   Widget _fullLayout(String display) {
     return Row(
       children: [
-        Icon(
-          Icons.calendar_month_rounded,
-          size: 18,
-          color: AppTheme.armyGreen,
-        ),
+        Icon(Icons.calendar_month_rounded, size: 18, color: AppTheme.armyGreen),
         const SizedBox(width: 8),
         Expanded(
           child: Column(

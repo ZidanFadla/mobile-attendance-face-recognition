@@ -24,7 +24,6 @@ class _LeaveRequestPageState extends State<LeaveRequestPage>
   final _contactController = TextEditingController();
   final _handoverController = TextEditingController();
 
-
   String _leaveType = 'Cuti Tahunan';
   DateTime? _startDate;
   DateTime? _endDate;
@@ -135,7 +134,10 @@ class _LeaveRequestPageState extends State<LeaveRequestPage>
           _halfDay = false;
         });
         _loadLeaveBalance();
-        showSuccessSnackbar(context, data['message'] ?? 'Pengajuan cuti berhasil dikirim.');
+        showSuccessSnackbar(
+          context,
+          data['message'] ?? 'Pengajuan cuti berhasil dikirim.',
+        );
       } else {
         showErrorSnackbar(
           context,

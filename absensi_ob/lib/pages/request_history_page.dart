@@ -77,9 +77,7 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
         ),
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: AppTheme.armyGreen),
-            )
+          ? Center(child: CircularProgressIndicator(color: AppTheme.armyGreen))
           : RefreshIndicator(
               color: AppTheme.armyGreen,
               onRefresh: _loadHistory,
@@ -135,7 +133,8 @@ class _RequestHistoryPageState extends State<RequestHistoryPage> {
 
   Future<void> _openAttachment(String url) async {
     final lowerUrl = url.toLowerCase();
-    final isImage = lowerUrl.endsWith('.jpg') ||
+    final isImage =
+        lowerUrl.endsWith('.jpg') ||
         lowerUrl.endsWith('.jpeg') ||
         lowerUrl.endsWith('.png') ||
         lowerUrl.endsWith('.webp');
@@ -254,10 +253,7 @@ class _MoneyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          label,
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
         const Spacer(),
         Text(
           NumberFormat.currency(
@@ -376,10 +372,7 @@ class _HistoryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _subtitle,
-                      style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                     ),
                   ],
                 ),
@@ -622,10 +615,7 @@ class _AttachmentPreview extends StatelessWidget {
                     _isImage
                         ? 'Ketuk untuk melihat foto'
                         : 'Ketuk untuk membuka',
-                    style: TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
                   ),
                 ],
               ),
@@ -680,8 +670,7 @@ class _ImagePreviewDialog extends StatelessWidget {
                         const SizedBox(height: 16),
                         const Text(
                           'Memuat gambar...',
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 13),
+                          style: TextStyle(color: Colors.white70, fontSize: 13),
                         ),
                       ],
                     ),
@@ -691,8 +680,11 @@ class _ImagePreviewDialog extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.broken_image_rounded,
-                          color: Colors.white38, size: 64),
+                      Icon(
+                        Icons.broken_image_rounded,
+                        color: Colors.white38,
+                        size: 64,
+                      ),
                       SizedBox(height: 12),
                       Text(
                         'Gagal memuat gambar',
@@ -717,8 +709,11 @@ class _ImagePreviewDialog extends StatelessWidget {
                 onTap: () => Navigator.pop(context),
                 child: const Padding(
                   padding: EdgeInsets.all(10),
-                  child:
-                      Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
