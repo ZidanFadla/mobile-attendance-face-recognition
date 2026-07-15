@@ -1,31 +1,72 @@
-import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import '../core/app_theme.dart';
+import 'dart:async';
+import 'dart:io';
 
-/// Face scan page with camera + capture.
-/// Server handles all validation — this is just a capture UI.
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+
+import '../core/app_theme.dart';
+import '../services/face_recognition_service.dart';
+
+/// Face scan page with camera + on-device face recognition.
+/// Extracts MobileFaceNet embedding locally after capture.
 class FaceScanSimplePage extends StatefulWidget {
   final String? instruction;
   final bool isVideo;
+  final bool requireLiveness;
 
-  const FaceScanSimplePage({super.key, this.instruction, this.isVideo = false});
+  const FaceScanSimplePage({
+    super.key,
+    this.instruction,
+    this.isVideo = false,
+    this.requireLiveness = false,
+  });
 
   @override
   State<FaceScanSimplePage> createState() => _FaceScanSimplePageState();
 }
 
 class _FaceScanSimplePageState extends State<FaceScanSimplePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   CameraController? _controller;
+  CameraDescription? _camera;
+  FaceDetector? _faceDetector;
+  Timer? _idleTimer;
+  bool _isCameraInitializing = false;
   bool _isProcessing = false;
   bool _isRecording = false;
+  bool _isDetecting = false;
+  bool _livenessPassed = false;
+  bool _eyesWereOpen = false;
+  bool _eyesWereClosed = false;
+  DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
+  String _livenessStatus = 'Posisikan satu wajah di dalam oval';
 
   late AnimationController _scanlineController;
   late Animation<double> _scanlineAnimation;
 
+  static const _orientations = {
+    DeviceOrientation.portraitUp: 0,
+    DeviceOrientation.landscapeLeft: 90,
+    DeviceOrientation.portraitDown: 180,
+    DeviceOrientation.landscapeRight: 270,
+  };
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.requireLiveness) {
+      _faceDetector = FaceDetector(
+        options: FaceDetectorOptions(
+          performanceMode: FaceDetectorMode.fast,
+          enableClassification: true,
+          minFaceSize: 0.2,
+        ),
+      );
+    }
+    _startIdleTimer();
     _initCamera();
     _scanlineController = AnimationController(
       vsync: this,
@@ -36,21 +77,69 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
     );
   }
 
+  void _startIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(const Duration(seconds: 90), () {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Waktu scan habis karena tidak ada aktivitas.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _idleTimer?.cancel();
+      if (controller.value.isStreamingImages) {
+        try {
+          await controller.stopImageStream();
+        } catch (_) {}
+      }
+      try {
+        await controller.dispose();
+      } catch (_) {}
+      _controller = null;
+      if (mounted) setState(() {});
+    } else if (state == AppLifecycleState.resumed) {
+      _startIdleTimer();
+      _initCamera();
+    }
+  }
+
   Future<void> _initCamera() async {
+    if (_isCameraInitializing) return;
+    _isCameraInitializing = true;
     try {
       final cameras = await availableCameras();
       final frontCamera = cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.front,
         orElse: () => cameras.first,
       );
+      _camera = frontCamera;
 
-      _controller = CameraController(
+      final controller = CameraController(
         frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
       );
+      _controller = controller;
 
-      await _controller!.initialize();
+      await controller.initialize();
+      if (widget.requireLiveness) {
+        await controller.startImageStream(_processCameraImage);
+      }
       if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
@@ -58,15 +147,47 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
           SnackBar(content: Text('Error inisialisasi kamera: $e')),
         );
       }
+    } finally {
+      _isCameraInitializing = false;
     }
   }
 
+  Future<void> _disposeCamera() async {
+    final controller = _controller;
+    _controller = null;
+    if (controller == null) return;
+
+    try {
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+    } catch (_) {}
+
+    try {
+      await controller.dispose();
+    } catch (_) {}
+  }
+
+  Future<void> _disposeCameraAndDetector() async {
+    await _disposeCamera();
+    final detector = _faceDetector;
+    _faceDetector = null;
+    await detector?.close();
+  }
+
   Future<void> _capture() async {
-    if (_isProcessing || _controller == null) return;
+    if (_isProcessing ||
+        _controller == null ||
+        (widget.requireLiveness && !_livenessPassed)) {
+      return;
+    }
 
     setState(() => _isProcessing = true);
 
     try {
+      if (_controller!.value.isStreamingImages) {
+        await _controller!.stopImageStream();
+      }
       if (widget.isVideo) {
         await _controller!.startVideoRecording();
         setState(() => _isRecording = true);
@@ -75,13 +196,33 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
         if (mounted) Navigator.pop(context, video.path);
       } else {
         final photo = await _controller!.takePicture();
-        if (mounted) Navigator.pop(context, photo.path);
+        final face = await _detectSingleFaceFromFile(photo.path);
+
+        // Extract embedding from the detected face crop, not the full frame.
+        List<double>? embedding;
+        if (FaceRecognitionService.isReady) {
+          try {
+            embedding = await FaceRecognitionService.extractEmbedding(
+              photo.path,
+              faceRect: face.boundingBox,
+            );
+          } catch (e) {
+            debugPrint('Embedding extraction failed: $e');
+          }
+        }
+
+        if (mounted) {
+          Navigator.pop(context, {
+            'path': photo.path,
+            'embedding': embedding,
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() {
           _isProcessing = false;
           _isRecording = false;
@@ -90,10 +231,181 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
     }
   }
 
+  Future<void> _processCameraImage(CameraImage image) async {
+    final now = DateTime.now();
+    if (_isDetecting ||
+        _livenessPassed ||
+        now.difference(_lastProcessedAt) < const Duration(milliseconds: 250)) {
+      return;
+    }
+
+    final inputImage = _inputImageFromCameraImage(image);
+    if (inputImage == null || _faceDetector == null) return;
+
+    _isDetecting = true;
+    _lastProcessedAt = now;
+    try {
+      final faces = await _faceDetector!.processImage(inputImage);
+      if (faces.isNotEmpty) {
+        _startIdleTimer();
+      }
+      if (!mounted || _livenessPassed) return;
+
+      if (faces.length != 1) {
+        setState(() {
+          _livenessStatus = faces.isEmpty
+              ? 'Wajah belum terdeteksi'
+              : 'Pastikan hanya satu wajah terlihat';
+        });
+        return;
+      }
+
+      final face = faces.first;
+      if (!_isFaceBoxValid(
+        face.boundingBox,
+        Size(image.width.toDouble(), image.height.toDouble()),
+      )) {
+        setState(() {
+          _livenessStatus = 'Posisikan wajah jelas di dalam oval';
+        });
+        return;
+      }
+
+      if (_checkBlink(face)) {
+        await _completeLiveness();
+      } else if (mounted) {
+        setState(() => _livenessStatus = _challengeInstruction);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _livenessStatus = 'Deteksi belum stabil, tahan wajah sebentar';
+        });
+      }
+    } finally {
+      _isDetecting = false;
+    }
+  }
+
+  bool _checkBlink(Face face) {
+    final leftEye = face.leftEyeOpenProbability;
+    final rightEye = face.rightEyeOpenProbability;
+    if (leftEye == null || rightEye == null) return false;
+
+    if (leftEye > 0.75 && rightEye > 0.75) {
+      if (_eyesWereClosed) return true;
+      _eyesWereOpen = true;
+    } else if (_eyesWereOpen && leftEye < 0.30 && rightEye < 0.30) {
+      _eyesWereClosed = true;
+    }
+    return false;
+  }
+
+  bool _isFaceBoxValid(Rect box, Size imageSize) {
+    if (box.width < 80 || box.height < 80) return false;
+
+    final imageArea = imageSize.width * imageSize.height;
+    if (imageArea <= 0) return false;
+
+    final areaRatio = (box.width * box.height) / imageArea;
+    return areaRatio >= 0.04 && areaRatio <= 0.75;
+  }
+
+  Future<Face> _detectSingleFaceFromFile(String imagePath) async {
+    final detector = FaceDetector(
+      options: FaceDetectorOptions(
+        performanceMode: FaceDetectorMode.accurate,
+        enableClassification: true,
+        minFaceSize: 0.2,
+      ),
+    );
+
+    try {
+      final faces = await detector.processImage(
+        InputImage.fromFilePath(imagePath),
+      );
+      if (faces.length != 1) {
+        throw Exception(
+          faces.isEmpty
+              ? 'Wajah tidak terdeteksi. Pastikan wajah asli terlihat jelas.'
+              : 'Terdeteksi lebih dari satu wajah. Pastikan hanya satu wajah di kamera.',
+        );
+      }
+
+      final face = faces.first;
+      if (face.boundingBox.width < 80 || face.boundingBox.height < 80) {
+        throw Exception(
+          'Wajah terlalu kecil atau tidak jelas. Dekatkan wajah ke kamera.',
+        );
+      }
+      return face;
+    } finally {
+      await detector.close();
+    }
+  }
+
+  Future<void> _completeLiveness() async {
+    if (_livenessPassed || !mounted) return;
+    setState(() {
+      _livenessPassed = true;
+      _livenessStatus = 'Liveness berhasil. Mengambil foto...';
+    });
+
+    if (_controller?.value.isStreamingImages == true) {
+      await _controller!.stopImageStream();
+    }
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (mounted) await _capture();
+  }
+
+  InputImage? _inputImageFromCameraImage(CameraImage image) {
+    final camera = _camera;
+    final controller = _controller;
+    if (camera == null || controller == null) return null;
+
+    final sensorOrientation = camera.sensorOrientation;
+    InputImageRotation? rotation;
+
+    if (Platform.isIOS) {
+      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+    } else if (Platform.isAndroid) {
+      var compensation = _orientations[controller.value.deviceOrientation];
+      if (compensation == null) return null;
+      compensation = camera.lensDirection == CameraLensDirection.front
+          ? (sensorOrientation + compensation) % 360
+          : (sensorOrientation - compensation + 360) % 360;
+      rotation = InputImageRotationValue.fromRawValue(compensation);
+    }
+    if (rotation == null) return null;
+
+    final format = InputImageFormatValue.fromRawValue(image.format.raw);
+    if (format == null ||
+        (Platform.isAndroid && format != InputImageFormat.nv21) ||
+        (Platform.isIOS && format != InputImageFormat.bgra8888) ||
+        image.planes.length != 1) {
+      return null;
+    }
+
+    final plane = image.planes.first;
+    return InputImage.fromBytes(
+      bytes: plane.bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: plane.bytesPerRow,
+      ),
+    );
+  }
+
+  String get _challengeInstruction => 'Kedipkan kedua mata satu kali';
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _idleTimer?.cancel();
     _scanlineController.dispose();
-    _controller?.dispose();
+    unawaited(_disposeCameraAndDetector());
     super.dispose();
   }
 
@@ -115,6 +427,7 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
           children: [
             _buildHeader(),
             if (widget.instruction != null) _buildInstruction(),
+            if (widget.requireLiveness) _buildLivenessInstruction(),
             Expanded(child: _buildCameraPreview()),
             _buildBottomBar(),
           ],
@@ -168,6 +481,41 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
     );
   }
 
+  Widget _buildLivenessInstruction() {
+    final passed = _livenessPassed;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: passed ? AppTheme.success : AppTheme.armyGreen,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Text(
+            passed ? 'Verifikasi gerakan berhasil' : _challengeInstruction,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _livenessStatus,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCameraPreview() {
     return Stack(
       alignment: Alignment.center,
@@ -183,9 +531,10 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
           animation: _scanlineAnimation,
           builder: (context, _) {
             return Positioned(
-              top: MediaQuery.of(context).size.height *
-                  0.1 *
-                  _scanlineAnimation.value +
+              top:
+                  MediaQuery.of(context).size.height *
+                      0.1 *
+                      _scanlineAnimation.value +
                   MediaQuery.of(context).size.height * 0.08,
               left: MediaQuery.of(context).size.width * 0.2,
               right: MediaQuery.of(context).size.width * 0.2,
@@ -240,7 +589,11 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
       child: Column(
         children: [
           Text(
-            widget.isVideo
+            widget.requireLiveness
+                ? (_livenessPassed
+                      ? 'Tahan posisi, foto sedang diambil'
+                      : 'Ikuti instruksi gerakan di atas')
+                : widget.isVideo
                 ? 'Hadapkan wajah ke kamera selama 3 detik'
                 : 'Posisikan wajah di dalam oval',
             textAlign: TextAlign.center,
@@ -253,7 +606,9 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
           const SizedBox(height: 20),
           // Circular shutter button
           GestureDetector(
-            onTap: _isProcessing ? null : _capture,
+            onTap: _isProcessing || (widget.requireLiveness && !_livenessPassed)
+                ? null
+                : _capture,
             child: Container(
               width: 78,
               height: 78,
@@ -269,7 +624,11 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isProcessing ? AppTheme.textMuted : AppTheme.armyGreen,
+                  color:
+                      _isProcessing ||
+                          (widget.requireLiveness && !_livenessPassed)
+                      ? AppTheme.textMuted
+                      : AppTheme.armyGreen,
                 ),
                 child: _isProcessing
                     ? const Center(

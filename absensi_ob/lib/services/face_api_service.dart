@@ -1,12 +1,16 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
 
-/// Clean & Simple Face API Service
-/// Hanya handle API communication, no ML logic
+/// Face API Service — Simplified for on-device face recognition.
+///
+/// With on-device MobileFaceNet, this service now only handles:
+/// 1. Sending embeddings to the server (registration)
+/// 2. Fetching stored embeddings from the server (for local caching)
+/// 3. Checking face registration status
+///
+/// Face verification is no longer done via API — it happens on-device.
 class FaceApiService {
   FaceApiService._();
 
@@ -23,42 +27,21 @@ class FaceApiService {
     return {..._headers, 'Authorization': 'Bearer $token'};
   }
 
-  /// Compress image untuk mengurangi ukuran transfer
-  static Future<String> _compressImage(String imagePath) async {
-    final bytes = await File(imagePath).readAsBytes();
-    final image = img.decodeImage(bytes);
-    if (image == null) throw Exception('Gagal decode gambar');
-
-    // Resize jika terlalu besar (max 800px width)
-    final resized = image.width > 800
-        ? img.copyResize(image, width: 800)
-        : image;
-
-    // Convert to RGB dan compress
-    final rgb = resized.convert(numChannels: 3);
-    final compressed = img.encodeJpg(rgb, quality: 85);
-
-    return base64Encode(compressed);
-  }
-
-  /// Register face dengan multiple images
-  /// Server akan handle semua validasi (detection, quality, liveness)
-  static Future<FaceResponse> registerFace(List<String> imagePaths) async {
-    if (imagePaths.isEmpty) {
-      throw Exception('Minimal 1 foto diperlukan');
-    }
-
-    // Compress semua images
-    final compressedImages = <String>[];
-    for (final path in imagePaths) {
-      compressedImages.add(await _compressImage(path));
+  /// Register face embeddings (extracted on-device) to the server.
+  ///
+  /// [embeddings] – List of 192-dim vectors extracted from 3+ photos.
+  static Future<FaceResponse> registerEmbeddings(
+    List<List<double>> embeddings,
+  ) async {
+    if (embeddings.isEmpty) {
+      throw Exception('Minimal 1 embedding diperlukan');
     }
 
     final response = await http
         .post(
           Uri.parse('${AppConstants.baseUrl}/face/register'),
           headers: await _authHeaders(),
-          body: jsonEncode({'images': compressedImages}),
+          body: jsonEncode({'embeddings': embeddings}),
         )
         .timeout(AppConstants.requestTimeout);
 
@@ -76,42 +59,33 @@ class FaceApiService {
     return FaceResponse.fromJson(jsonDecode(response.body));
   }
 
-  /// Verify face untuk attendance
-  /// Supports image atau video
-  static Future<FaceResponse> verifyFace({
-    required String filePath,
-    bool isVideo = false,
-  }) async {
-    final body = isVideo
-        ? {
-            'video': base64Encode(await File(filePath).readAsBytes()),
-            'type': 'video',
-          }
-        : {'image': await _compressImage(filePath), 'type': 'image'};
-
+  /// Fetch stored embeddings from the server (for local cache / offline use).
+  static Future<List<List<double>>?> fetchStoredEmbeddings() async {
     final response = await http
-        .post(
-          Uri.parse('${AppConstants.baseUrl}/face/verify'),
+        .get(
+          Uri.parse('${AppConstants.baseUrl}/face/embeddings'),
           headers: await _authHeaders(),
-          body: jsonEncode(body),
         )
         .timeout(AppConstants.requestTimeout);
 
-    if (response.statusCode != 200) {
-      String errMsg = 'Server error: ${response.statusCode}';
-      try {
-        final errData = jsonDecode(response.body);
-        if (errData is Map && errData['message'] != null) {
-          errMsg = errData['message'];
-        }
-      } catch (_) {}
-      throw Exception(errMsg);
-    }
+    if (response.statusCode != 200) return null;
 
-    return FaceResponse.fromJson(jsonDecode(response.body));
+    try {
+      final data = jsonDecode(response.body);
+      final raw = data['embeddings'];
+      if (raw == null) return null;
+
+      final embeddings = (raw as List)
+          .map((e) => List<double>.from(
+              (e as List).map((v) => (v as num).toDouble())))
+          .toList();
+      return embeddings.isNotEmpty ? embeddings : null;
+    } catch (_) {
+      return null;
+    }
   }
 
-  /// Check apakah user sudah register face
+  /// Check if the user has registered their face.
   static Future<bool> checkFaceRegistration() async {
     final response = await http
         .get(
@@ -120,38 +94,24 @@ class FaceApiService {
         )
         .timeout(AppConstants.requestTimeout);
 
-    if (response.statusCode != 200) {
-      return false;
-    }
+    if (response.statusCode != 200) return false;
 
     final data = jsonDecode(response.body);
     return data['registered'] ?? false;
   }
 }
 
-/// Response model dari server
+/// Response model from the server.
 class FaceResponse {
   final bool success;
   final String message;
-  final bool? match;
-  final double? confidence;
-  final Map<String, dynamic>? data;
 
-  FaceResponse({
-    required this.success,
-    required this.message,
-    this.match,
-    this.confidence,
-    this.data,
-  });
+  FaceResponse({required this.success, required this.message});
 
   factory FaceResponse.fromJson(Map<String, dynamic> json) {
     return FaceResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      match: json['match'],
-      confidence: json['confidence']?.toDouble(),
-      data: json['data'],
     );
   }
 }

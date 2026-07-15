@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../controllers/attendance_controller.dart';
+import '../core/app_constants.dart';
 import '../core/app_theme.dart';
 import '../services/session_manager.dart';
 
@@ -567,9 +568,12 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     int onTimeCount = 0;
     for (final r in monthRecords) {
-      final hour = r.timestamp.hour;
-      final minute = r.timestamp.minute;
-      if (hour < 8 || (hour == 8 && minute == 0)) {
+      final minutes = r.timestamp.hour * 60 + r.timestamp.minute;
+      final startMinutes = AppConstants.clockInStartHour * 60 +
+          AppConstants.clockInStartMinute;
+      final endMinutes =
+          AppConstants.clockInEndHour * 60 + AppConstants.clockInEndMinute;
+      if (minutes >= startMinutes && minutes <= endMinutes) {
         onTimeCount++;
       }
     }

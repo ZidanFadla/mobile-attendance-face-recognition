@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../controllers/attendance_controller.dart';
 import '../core/app_constants.dart';
 import '../core/app_theme.dart';
+import '../services/face_recognition_service.dart';
 import '../services/session_manager.dart';
 import '../services/message_service.dart';
+import '../services/offline_attendance_queue.dart';
 import 'face_scan_simple_page.dart';
 import 'home_page.dart';
 import 'history_page.dart';
@@ -47,14 +49,24 @@ class _MainShellState extends State<MainShell> {
     _controller.addListener(() {
       if (mounted) setState(() {});
     });
+
+    // Initialize on-device face recognition model
+    FaceRecognitionService.init().catchError((e) {
+      debugPrint('⚠️ Face model init failed: $e');
+    });
+
     _controller.init().then((needsRegistration) {
       if (needsRegistration && mounted) _showRegisterFaceDialog();
     });
 
     // Muat riwayat absensi dari database backend
     SessionManager.loadFromApi(_name).then((_) {
+      _controller.refreshTodayStatus();
       if (mounted) setState(() {});
     });
+
+    // Sync offline attendance queue
+    OfflineAttendanceQueue.syncAll();
 
     // Start polling admin messages immediately on app startup
     MessageService.startPolling(onMessages: (_) {}, onUnreadCount: (_) {});
@@ -70,53 +82,87 @@ class _MainShellState extends State<MainShell> {
   // ── Flows ──────────────────────────────────────────────────
 
   Future<void> _onClockIn() async {
-    final path = await Navigator.push<String>(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
+      MaterialPageRoute(
+        builder: (_) => const FaceScanSimplePage(requireLiveness: true),
+      ),
     );
-    if (path == null || !mounted) return;
-    final result = await _controller.clockIn(File(path));
-    if (mounted) _showResultDialog(result.message, result.success);
+    if (result == null || !mounted) return;
+    final path = result['path'] as String;
+    final embedding = result['embedding'] as List<double>?;
+    if (embedding == null) {
+      _showResultDialog('Gagal memproses wajah. Silakan coba lagi.', false);
+      return;
+    }
+    final attendanceResult = await _controller.clockIn(File(path), embedding);
+    if (mounted) _showResultDialog(attendanceResult.message, attendanceResult.success);
   }
 
   Future<void> _onClockOut() async {
-    final path = await Navigator.push<String>(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (_) => const FaceScanSimplePage()),
+      MaterialPageRoute(
+        builder: (_) => const FaceScanSimplePage(requireLiveness: true),
+      ),
     );
-    if (path == null || !mounted) return;
-    final result = await _controller.clockOut(File(path));
-    if (mounted) _showResultDialog(result.message, result.success);
+    if (result == null || !mounted) return;
+    final path = result['path'] as String;
+    final embedding = result['embedding'] as List<double>?;
+    if (embedding == null) {
+      _showResultDialog('Gagal memproses wajah. Silakan coba lagi.', false);
+      return;
+    }
+    final attendanceResult = await _controller.clockOut(File(path), embedding);
+    if (mounted) _showResultDialog(attendanceResult.message, attendanceResult.success);
   }
 
   Future<void> _onRegisterFace() async {
     setState(() => _currentIndex = 0);
 
     final List<File> photos = [];
+    final List<List<double>> embeddings = [];
     final instructions = AppConstants.faceRegisterInstructions;
 
     for (int i = 0; i < 3; i++) {
       if (!mounted) return;
-      final path = await Navigator.push<String>(
+      final result = await Navigator.push<Map<String, dynamic>>(
         context,
         MaterialPageRoute(
-          builder: (_) => FaceScanSimplePage(instruction: instructions[i]),
+          builder: (_) => FaceScanSimplePage(
+            instruction: instructions[i],
+            requireLiveness: true,
+          ),
         ),
       );
-      if (path == null) {
+      if (result == null) {
         if (mounted) _showResultDialog('Registrasi dibatalkan', false);
         return;
       }
+
+      final path = result['path'] as String;
+      final embedding = result['embedding'] as List<double>?;
+      if (embedding == null) {
+        if (mounted) {
+          _showResultDialog(
+            'Foto ${i + 1}: Gagal memproses wajah. Coba lagi.',
+            false,
+          );
+        }
+        return;
+      }
+
       photos.add(File(path));
+      embeddings.add(embedding);
       if (i < 2 && mounted) await _showPhotoProgressDialog(i + 1);
     }
 
     if (!mounted) return;
-    final result = await _controller.registerFace(photos);
+    final regResult = await _controller.registerFace(photos, embeddings);
 
     if (mounted) {
-      _showResultDialog(result.message, result.success);
-      if (!result.success) {
+      _showResultDialog(regResult.message, regResult.success);
+      if (!regResult.success) {
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) _showRegisterFaceDialog();
       }

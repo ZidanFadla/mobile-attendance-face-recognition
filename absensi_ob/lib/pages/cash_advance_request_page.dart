@@ -55,6 +55,15 @@ class _CashAdvanceRequestPageState extends State<CashAdvanceRequestPage>
   void initState() {
     super.initState();
     _loadCashSummary();
+    recoverLostAttachment(
+      onAttachmentPicked: (file, name) {
+        if (!mounted) return;
+        setState(() {
+          _attachment = file;
+          _attachmentName = name;
+        });
+      },
+    );
   }
 
   @override

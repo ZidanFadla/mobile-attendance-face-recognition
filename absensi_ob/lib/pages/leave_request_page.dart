@@ -45,6 +45,15 @@ class _LeaveRequestPageState extends State<LeaveRequestPage>
   void initState() {
     super.initState();
     _loadLeaveBalance();
+    recoverLostAttachment(
+      onAttachmentPicked: (file, name) {
+        if (!mounted) return;
+        setState(() {
+          _attachment = file;
+          _attachmentName = name;
+        });
+      },
+    );
   }
 
   @override

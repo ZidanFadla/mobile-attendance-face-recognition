@@ -28,6 +28,10 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    aaptOptions {
+        noCompress("tflite")
+    }
+
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String?

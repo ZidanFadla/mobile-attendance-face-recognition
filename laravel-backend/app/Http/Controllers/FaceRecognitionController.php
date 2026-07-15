@@ -2,199 +2,59 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class FaceRecognitionController extends Controller
 {
-    private function pythonUrl(): string
-    {
-        return rtrim(config('services.face_recognition.url'), '/');
-    }
-
     /**
-     * Register face — menerima format dari Flutter:
-     * { "images": ["base64_1", "base64_2", "base64_3"] }
+     * Register face — menerima embeddings dari Flutter (on-device MobileFaceNet).
+     *
+     * Request:
+     *   { "embeddings": [[...192 floats...], [...], [...]] }
+     *
+     * Embeddings sudah di-extract on-device oleh MobileFaceNet TFLite.
+     * Server hanya menyimpan — tidak perlu Python server lagi.
      */
     public function registerFace(Request $request)
     {
         $request->validate([
-            'images' => 'required|array|min:1',
-            'images.*' => 'required|string',
+            'embeddings' => 'required|array|min:1',
+            'embeddings.*' => 'required|array',
         ]);
 
         $employee = $request->user();
 
-        // Forward ke Python server
-        try {
-            $response = Http::timeout(60)
-                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
-                ->post("{$this->pythonUrl()}/face/register", [
-                    'images' => $request->images,
-                ]);
-
-            if ($response->failed()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-
-            $result = $response->json();
-            if (!$result) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
-            ], 500);
-        }
-
-        if (!($result['success'] ?? false)) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'] ?? 'Gagal mendaftarkan wajah',
-            ], 400);
-        }
-
-        // Simpan embedding ke database
-        $embeddings = $result['data']['embeddings'] ?? $result['embedding'] ?? null;
-        if ($embeddings) {
-            $employee->face_embedding = json_encode($embeddings);
-            $employee->save();
-        }
+        // Simpan embeddings langsung ke database
+        $employee->face_embedding = json_encode($request->embeddings);
+        $employee->save();
 
         return response()->json([
             'success' => true,
-            'message' => $result['message'] ?? 'Wajah berhasil didaftarkan',
+            'message' => 'Wajah berhasil didaftarkan',
         ]);
     }
 
     /**
-     * Register face multiple (backward compatibility)
-     * { "images_base64": ["base64_1", "base64_2", "base64_3"] }
+     * Get stored embeddings — Flutter mengambil embeddings untuk di-cache di HP.
+     * Digunakan untuk offline face matching.
      */
-    public function registerFaceMultiple(Request $request)
+    public function getEmbeddings(Request $request)
     {
-        $request->validate([
-            'images_base64' => 'required|array|min:3',
-        ]);
-
         $employee = $request->user();
-        try {
-            $response = Http::timeout(60)
-                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
-                ->post("{$this->pythonUrl()}/face/register", [
-                    'images' => $request->images_base64,
-                ]);
 
-            if ($response->failed()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-
-            $result = $response->json();
-            if (!$result) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
-            ], 500);
-        }
-
-        if (!($result['success'] ?? false)) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'] ?? 'Gagal mendaftarkan wajah',
-            ], 400);
-        }
-
-        $embeddings = $result['data']['embeddings'] ?? $result['embedding'] ?? null;
-        if ($embeddings) {
-            $employee->face_embedding = json_encode($embeddings);
-            $employee->save();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Wajah berhasil didaftarkan dengan 3 foto!',
-        ]);
-    }
-
-    /**
-     * Verify face — menerima format dari Flutter:
-     * { "image": "base64_image", "type": "image" }
-     */
-    public function verifyFace(Request $request)
-    {
-        // Terima 'image' (Flutter) atau 'image_base64' (legacy)
-        $imageBase64 = $request->image ?? $request->image_base64;
-
-        if (!$imageBase64) {
-            return response()->json([
-                'success' => false,
-                'match' => false,
-                'message' => 'Field image diperlukan',
-            ], 400);
-        }
-
-        $employee = $request->user();
         if (!$employee || !$employee->face_embedding) {
             return response()->json([
-                'success' => false,
-                'match' => false,
-                'message' => 'Wajah belum didaftarkan',
-            ], 404);
+                'embeddings' => null,
+            ]);
         }
 
-        $storedEmbeddings = json_decode($employee->face_embedding, true);
-
-        try {
-            $response = Http::timeout(60)
-                ->withHeaders(['ngrok-skip-browser-warning' => 'true'])
-                ->post("{$this->pythonUrl()}/face/verify", [
-                    'image' => $imageBase64,
-                    'type' => $request->type ?? 'image',
-                    'stored_embeddings' => $storedEmbeddings,
-                ]);
-
-            if ($response->failed()) {
-                return response()->json([
-                    'success' => false,
-                    'match' => false,
-                    'message' => 'Python Server Error: ' . $response->status() . ' - ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-
-            $result = $response->json();
-            if (!$result) {
-                return response()->json([
-                    'success' => false,
-                    'match' => false,
-                    'message' => 'Python Server returned empty/invalid response: ' . substr($response->body(), 0, 150),
-                ], 400);
-            }
-
-            return response()->json($result);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'match' => false,
-                'message' => 'Gagal terhubung ke Python Server: ' . $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'embeddings' => json_decode($employee->face_embedding, true),
+        ]);
     }
 
+    /**
+     * Check apakah user sudah register face.
+     */
     public function checkFace(Request $request)
     {
         $registered = !empty($request->user()->face_embedding);

@@ -14,13 +14,14 @@ class SessionManager {
     _attendanceData.putIfAbsent(name, () => []).add(record);
   }
 
-  /// Ambil record hari ini berdasarkan tipe
+  /// Ambil record hari ini berdasarkan tipe.
   static AttendanceRecord? getTodayRecord(String name, String type) {
     final records = _attendanceData[name] ?? [];
     final now = DateTime.now();
+    final normalizedType = _normalizeAttendanceType(type);
 
     for (final record in records) {
-      if (record.type == type &&
+      if (_normalizeAttendanceType(record.type) == normalizedType &&
           record.timestamp.year == now.year &&
           record.timestamp.month == now.month &&
           record.timestamp.day == now.day) {
@@ -60,6 +61,20 @@ class SessionManager {
   /// Bersihkan data saat logout
   static void clear() {
     _attendanceData.clear();
+  }
+
+  static String _normalizeAttendanceType(String type) {
+    final value = type.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+    if (value == 'masuk' || value == 'clockin' || value == 'in') {
+      return 'masuk';
+    }
+    if (value == 'pulang' ||
+        value == 'keluar' ||
+        value == 'clockout' ||
+        value == 'out') {
+      return 'pulang';
+    }
+    return value;
   }
 
   static double _toDouble(dynamic v) {

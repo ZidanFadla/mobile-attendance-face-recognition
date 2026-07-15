@@ -7,7 +7,9 @@ import '../models/attendance_record.dart';
 import '../core/app_constants.dart';
 import '../services/api_service.dart';
 import '../services/face_api_service.dart';
+import '../services/face_recognition_service.dart';
 import '../services/location_service.dart';
+import '../services/offline_attendance_queue.dart';
 import '../services/session_manager.dart';
 
 /// Result returned from attendance operations.
@@ -54,26 +56,40 @@ class AttendanceController extends ChangeNotifier {
 
   AttendanceController({required this.name, required this.phoneNumber});
 
-  /// Called once in HomePage.initState().
+  /// Called once in MainShell.initState().
   /// Returns true if the employee hasn't registered their face yet.
   Future<bool> init() async {
     _loadTodayStatus();
+
+    // Sync offline queue if any
+    _trySyncOfflineQueue();
+
     return await _fetchFaceRegistrationStatus();
   }
+
+  void refreshTodayStatus() => _loadTodayStatus();
 
   void _loadTodayStatus() {
     final masukRecord = SessionManager.getTodayRecord(name, 'Masuk');
     final pulangRecord = SessionManager.getTodayRecord(name, 'Pulang');
 
-    if (masukRecord != null) {
-      isClockedIn = true;
-      clockInTime = DateFormat('HH:mm').format(masukRecord.timestamp);
-      timestampMasuk = masukRecord.timestamp;
-    }
-    if (pulangRecord != null) {
-      clockOutTime = DateFormat('HH:mm').format(pulangRecord.timestamp);
-      timestampPulang = pulangRecord.timestamp;
-    }
+    isClockedIn = masukRecord != null;
+    clockInTime = masukRecord == null
+        ? '--:--'
+        : DateFormat('HH:mm').format(masukRecord.timestamp);
+    timestampMasuk = masukRecord?.timestamp;
+    latitudeMasuk = masukRecord?.latitude;
+    longitudeMasuk = masukRecord?.longitude;
+    alamatMasuk = masukRecord?.locationName;
+
+    clockOutTime = pulangRecord == null
+        ? '--:--'
+        : DateFormat('HH:mm').format(pulangRecord.timestamp);
+    timestampPulang = pulangRecord?.timestamp;
+    latitudePulang = pulangRecord?.latitude;
+    longitudePulang = pulangRecord?.longitude;
+    alamatPulang = pulangRecord?.locationName;
+
     notifyListeners();
   }
 
@@ -87,8 +103,15 @@ class AttendanceController extends ChangeNotifier {
 
     try {
       isFaceRegistered = await ApiService.checkFaceRegistration();
+
+      // If registered, fetch & cache embeddings for offline use
+      if (isFaceRegistered) {
+        _cacheEmbeddingsFromServer();
+      }
     } catch (_) {
-      isFaceRegistered = false;
+      // If offline, check if we have cached embeddings
+      final cached = await FaceRecognitionService.getCachedEmbeddings();
+      isFaceRegistered = cached != null && cached.isNotEmpty;
     } finally {
       isCheckingFace = false;
       notifyListeners();
@@ -96,31 +119,109 @@ class AttendanceController extends ChangeNotifier {
     return !isFaceRegistered;
   }
 
+  /// Fetch embeddings from server and cache locally (non-blocking).
+  Future<void> _cacheEmbeddingsFromServer() async {
+    try {
+      final embeddings = await FaceApiService.fetchStoredEmbeddings();
+      if (embeddings != null && embeddings.isNotEmpty) {
+        await FaceRecognitionService.cacheEmbeddings(embeddings);
+      }
+    } catch (_) {
+      // Ignore — cached embeddings remain from last successful fetch
+    }
+  }
+
+  /// Try to sync any offline attendance records.
+  Future<void> _trySyncOfflineQueue() async {
+    try {
+      final synced = await OfflineAttendanceQueue.syncAll();
+      if (synced > 0 && kDebugMode) {
+        debugPrint('📡 Synced $synced offline attendance records');
+      }
+    } catch (_) {
+      // Will retry next time
+    }
+  }
+
   // ── Clock In & Out ──
 
-  Future<AttendanceResult> clockIn(File photo) =>
-      _processAttendance(photo, 'Masuk');
+  Future<AttendanceResult> clockIn(File photo, List<double> embedding) =>
+      _processAttendance(photo, embedding, 'Masuk');
 
-  Future<AttendanceResult> clockOut(File photo) =>
-      _processAttendance(photo, 'Pulang');
+  Future<AttendanceResult> clockOut(File photo, List<double> embedding) =>
+      _processAttendance(photo, embedding, 'Pulang');
 
-  /// Unified implementation for both clock in and clock out.
+  /// Unified attendance flow — face verification is now ON-DEVICE.
   Future<AttendanceResult> _processAttendance(
     File photoFile,
+    List<double> currentEmbedding,
     String type,
   ) async {
     try {
-      _setLoading(true, '🔍 Memverifikasi wajah...\nMohon tunggu sebentar');
-      final faceResult = await FaceApiService.verifyFace(
-        filePath: photoFile.path,
-        isVideo: false,
-      );
-
-      if (!faceResult.success || faceResult.match != true) {
-        _setLoading(false);
-        return AttendanceResult(success: false, message: faceResult.message);
+      _loadTodayStatus();
+      final hasClockInToday = SessionManager.getTodayRecord(name, 'Masuk') != null;
+      final hasClockOutToday =
+          SessionManager.getTodayRecord(name, 'Pulang') != null;
+      if (type == 'Masuk' && hasClockInToday) {
+        return const AttendanceResult(
+          success: false,
+          message: 'Kamu sudah absen masuk hari ini.',
+        );
+      }
+      if (type == 'Masuk' && !_isWithinClockInWindow(DateTime.now())) {
+        return const AttendanceResult(
+          success: false,
+          message: 'Absen masuk hanya dibuka pukul 06:00 sampai 08:00.',
+        );
+      }
+      if (type == 'Pulang') {
+        if (!hasClockInToday) {
+          return const AttendanceResult(
+            success: false,
+            message: 'Absen masuk terlebih dahulu sebelum absen pulang.',
+          );
+        }
+        if (hasClockOutToday) {
+          return const AttendanceResult(
+            success: false,
+            message: 'Kamu sudah absen pulang hari ini.',
+          );
+        }
       }
 
+      // 1. Verify face ON-DEVICE
+      _setLoading(true, '🔍 Memverifikasi wajah...');
+
+      if (kDebugMode && AppConstants.devAttendanceBypass) {
+        // Skip face verification in dev mode
+      } else {
+        final storedEmbeddings =
+            await FaceRecognitionService.getCachedEmbeddings();
+        if (storedEmbeddings == null || storedEmbeddings.isEmpty) {
+          _setLoading(false);
+          return const AttendanceResult(
+            success: false,
+            message:
+                'Data wajah tidak ditemukan.\nPastikan koneksi internet tersedia dan coba lagi.',
+          );
+        }
+
+        final matchResult = FaceRecognitionService.compareFaces(
+          currentEmbedding,
+          storedEmbeddings,
+        );
+
+        if (!matchResult.match) {
+          _setLoading(false);
+          return AttendanceResult(
+            success: false,
+            message:
+                '${matchResult.message}\n(Confidence: ${matchResult.confidence.toStringAsFixed(1)}%)',
+          );
+        }
+      }
+
+      // 2. Get location
       _setLoading(true, '📍 Mengambil lokasi...');
       final position = await LocationService.getCurrentLocation();
       final placemarks = await placemarkFromCoordinates(
@@ -131,6 +232,7 @@ class AttendanceController extends ChangeNotifier {
       final locationName =
           '${place.street}, ${place.subLocality}, ${place.locality}';
 
+      // 3. Save attendance
       _setLoading(true, '💾 Menyimpan data absensi...');
       final now = DateTime.now();
       final formattedTime = DateFormat('HH:mm').format(now);
@@ -145,13 +247,20 @@ class AttendanceController extends ChangeNotifier {
         locationName: locationName,
       );
 
-      await ApiService.sendAttendance({
+      final attendanceData = {
         'type': type,
         'timestamp': now.toIso8601String(),
         'latitude': position.latitude,
         'longitude': position.longitude,
         'location_name': locationName,
-      });
+      };
+
+      // Try to send to server; if offline, queue it
+      try {
+        await ApiService.sendAttendance(attendanceData);
+      } catch (_) {
+        await OfflineAttendanceQueue.enqueue(attendanceData);
+      }
 
       SessionManager.addRecord(name, record);
 
@@ -176,8 +285,7 @@ class AttendanceController extends ChangeNotifier {
 
       return AttendanceResult(
         success: true,
-        message:
-            '✅ Absen $type berhasil!\nJam: $formattedTime\nWajah terverifikasi (${faceResult.confidence?.toStringAsFixed(1) ?? '99'}%)',
+        message: '✅ Absen $type berhasil!\nJam: $formattedTime',
         time: formattedTime,
       );
     } on TimeoutException {
@@ -185,7 +293,7 @@ class AttendanceController extends ChangeNotifier {
       return const AttendanceResult(
         success: false,
         message:
-            '⏱️ Server tidak merespons.\nPastikan terhubung ke jaringan yang benar dan coba lagi.',
+            '⏱️ Lokasi tidak tersedia.\nPastikan GPS aktif dan coba lagi.',
       );
     } on Exception catch (e) {
       _setLoading(false);
@@ -199,7 +307,19 @@ class AttendanceController extends ChangeNotifier {
 
   // ── Register Face ──
 
-  Future<AttendanceResult> registerFace(List<File> photos) async {
+  bool _isWithinClockInWindow(DateTime time) {
+    final currentMinutes = time.hour * 60 + time.minute;
+    final startMinutes =
+        AppConstants.clockInStartHour * 60 + AppConstants.clockInStartMinute;
+    final endMinutes =
+        AppConstants.clockInEndHour * 60 + AppConstants.clockInEndMinute;
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  }
+
+  Future<AttendanceResult> registerFace(
+    List<File> photos,
+    List<List<double>> embeddings,
+  ) async {
     try {
       if (kDebugMode && AppConstants.devAttendanceBypass) {
         isFaceRegistered = true;
@@ -210,21 +330,30 @@ class AttendanceController extends ChangeNotifier {
         );
       }
 
+      if (!FaceRecognitionService.areEmbeddingsConsistent(embeddings)) {
+        return const AttendanceResult(
+          success: false,
+          message:
+              'Foto registrasi wajah tidak konsisten. Pastikan ketiga foto memakai wajah orang yang sama dan terlihat jelas.',
+        );
+      }
+
       _setLoading(
         true,
-        '🧠 Memproses data wajah...\nIni mungkin memerlukan beberapa detik',
+        '📡 Mengirim data wajah ke server...\nIni mungkin memerlukan beberapa detik',
       );
 
-      final regResult = await FaceApiService.registerFace(
-        photos.map((f) => f.path).toList(),
-      );
-
-      _setLoading(false);
+      // Send embeddings (NOT photos) to server
+      final regResult = await FaceApiService.registerEmbeddings(embeddings);
 
       if (regResult.success) {
+        // Cache embeddings locally for offline matching
+        await FaceRecognitionService.cacheEmbeddings(embeddings);
         isFaceRegistered = true;
         notifyListeners();
       }
+
+      _setLoading(false);
 
       return AttendanceResult(
         success: regResult.success,

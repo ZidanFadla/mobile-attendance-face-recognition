@@ -22,10 +22,6 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
-    'face_recognition' => [
-        'url' => env('FACE_RECOGNITION_URL', 'http://localhost:5001'),
-    ],
-
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
