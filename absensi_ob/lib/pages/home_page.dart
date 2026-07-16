@@ -503,58 +503,57 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
           (r) =>
               r.timestamp.month == currentMonth &&
               r.timestamp.year == currentYear &&
+              r.timestamp.weekday <= DateTime.friday &&
               r.type == 'Masuk',
         )
         .toList();
 
-    final totalPresent = monthRecords.length;
-    var onTimeCount = 0;
+    final presentDays = <String>{};
+    final onTimeDays = <String>{};
 
     for (final r in monthRecords) {
+      final dayKey = DateFormat('yyyy-MM-dd').format(r.timestamp);
+      presentDays.add(dayKey);
+
       final minutes = r.timestamp.hour * 60 + r.timestamp.minute;
       final startMinutes =
           AppConstants.clockInStartHour * 60 + AppConstants.clockInStartMinute;
       final endMinutes =
           AppConstants.clockInEndHour * 60 + AppConstants.clockInEndMinute;
       if (minutes >= startMinutes && minutes <= endMinutes) {
-        onTimeCount++;
+        onTimeDays.add(dayKey);
       }
     }
 
+    final totalPresent = presentDays.length;
+    final onTimeCount = onTimeDays.length;
     final lateCount = totalPresent - onTimeCount;
     final onTimePct = totalPresent > 0
         ? (onTimeCount / totalPresent) * 100
         : 100.0;
-
-    final daysToSubtract = now.weekday - 1;
-    final monday = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(Duration(days: daysToSubtract));
-    final sunday = monday.add(
-      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
-    );
-
-    final weekRecords = records
-        .where(
-          (r) =>
-              r.timestamp.isAfter(
-                monday.subtract(const Duration(seconds: 1)),
-              ) &&
-              r.timestamp.isBefore(sunday.add(const Duration(seconds: 1))) &&
-              r.type == 'Masuk',
-        )
-        .toList();
-
-    final weekDays = weekRecords.map((r) => r.timestamp.day).toSet();
+    final monthWorkdays = _countWorkdaysInMonth(currentYear, currentMonth);
 
     return {
       'totalPresent': totalPresent,
       'onTimePct': onTimePct,
       'lateCount': lateCount,
-      'weekCount': weekDays.length,
+      'monthCount': totalPresent,
+      'monthWorkdays': monthWorkdays,
     };
+  }
+
+  int _countWorkdaysInMonth(int year, int month) {
+    final lastDay = DateTime(year, month + 1, 0).day;
+    var count = 0;
+
+    for (var day = 1; day <= lastDay; day++) {
+      final date = DateTime(year, month, day);
+      if (date.weekday <= DateTime.friday) {
+        count++;
+      }
+    }
+
+    return count;
   }
 
   String _getIndonesianMonthYear() {
@@ -581,7 +580,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final totalPresent = metrics['totalPresent'] as int;
     final onTimePct = metrics['onTimePct'] as double;
     final lateCount = metrics['lateCount'] as int;
-    final weekCount = metrics['weekCount'] as int;
+    final monthCount = metrics['monthCount'] as int;
+    final monthWorkdays = metrics['monthWorkdays'] as int;
 
     var performanceLabel = 'Cukup';
     if (onTimePct >= 95) {
@@ -590,7 +590,9 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
       performanceLabel = 'Baik';
     }
 
-    final weekProgress = (weekCount / 5.0).clamp(0.0, 1.0);
+    final monthProgress = monthWorkdays > 0
+        ? (monthCount / monthWorkdays).clamp(0.0, 1.0)
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -651,7 +653,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Progres Minggu Ini',
+                'Progres Bulan Ini',
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 13,
@@ -659,7 +661,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ),
               Text(
-                '$weekCount/5 Hari',
+                '$monthCount/$monthWorkdays Hari',
                 style: TextStyle(
                   color: AppTheme.textDark,
                   fontSize: 13,
@@ -674,7 +676,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: SizedBox(
               height: 7,
               child: LinearProgressIndicator(
-                value: weekProgress,
+                value: monthProgress,
                 backgroundColor: AppTheme.surfaceAlt,
                 color: AppTheme.armyGreen,
               ),
