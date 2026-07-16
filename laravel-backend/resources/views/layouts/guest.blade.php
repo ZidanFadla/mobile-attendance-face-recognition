@@ -10,41 +10,30 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="text-slate-900 antialiased">
-    <main class="min-h-screen overflow-hidden lg:grid lg:grid-cols-[1.05fr_.95fr]">
-        <section class="relative hidden min-h-screen flex-col justify-between overflow-hidden bg-slate-950 p-10 text-white lg:flex">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(79,142,247,.45),transparent_26rem),radial-gradient(circle_at_84%_22%,rgba(124,92,252,.38),transparent_24rem),linear-gradient(135deg,#0f172a,#111827_55%,#1e1b4b)]"></div>
-            <div class="absolute inset-x-10 top-28 h-80 rounded-[3rem] border border-white/10 bg-white/5 backdrop-blur-2xl"></div>
-            <div class="relative z-10 flex items-center gap-3">
-                <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-white/12 shadow-2xl backdrop-blur">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M8.25 21h7.5A2.25 2.25 0 0 0 18 18.75V5.25A2.25 2.25 0 0 0 15.75 3h-7.5A2.25 2.25 0 0 0 6 5.25v13.5A2.25 2.25 0 0 0 8.25 21Z"/></svg>
+    <main class="min-h-screen overflow-hidden bg-[#F4F6F8] lg:grid lg:grid-cols-[1fr_1fr]">
+        <section class="relative hidden min-h-screen items-center overflow-hidden px-12 text-slate-900 lg:flex xl:px-16">
+            <div class="absolute inset-0 bg-[linear-gradient(135deg,#F4F6F8_0%,#FFFFFF_48%,#EEF4FF_100%)]"></div>
+            <div class="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
+            <div class="absolute left-12 top-12 h-24 w-24 rounded-[2rem] border border-white/80 bg-white/45 shadow-clay backdrop-blur-xl xl:left-16"></div>
+            <div class="absolute bottom-16 right-16 h-40 w-56 rotate-[-8deg] rounded-[2rem] border border-white/80 bg-white/40 shadow-clay backdrop-blur-xl"></div>
+            <div class="absolute left-0 top-1/2 h-[34rem] w-5 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-[#4F8EF7] to-[#7C5CFC] opacity-80"></div>
+            <div class="absolute inset-0 opacity-[.22] [background-image:linear-gradient(rgba(15,23,42,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,.08)_1px,transparent_1px)] [background-size:44px_44px]"></div>
+
+            <div class="relative z-10 max-w-2xl">
+                <div class="mb-10 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-[#4F8EF7] to-[#7C5CFC] text-white shadow-[12px_12px_30px_rgba(79,142,247,.20),-8px_-8px_20px_rgba(255,255,255,.9)] ring-1 ring-white/70">
+                    <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M8.25 21h7.5A2.25 2.25 0 0 0 18 18.75V5.25A2.25 2.25 0 0 0 15.75 3h-7.5A2.25 2.25 0 0 0 6 5.25v13.5A2.25 2.25 0 0 0 8.25 21Z"/></svg>
                 </div>
-                <div>
-                    <p class="text-lg font-black tracking-tight">Absensi OB</p>
-                    <p class="text-xs font-semibold text-white/55">Admin Attendance Suite</p>
+
+                <div class="rounded-[2rem] bg-white/62 p-8 shadow-clay ring-1 ring-white/80 backdrop-blur-xl xl:p-10">
+                    <div class="mb-7 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#4F8EF7] to-[#7C5CFC]"></div>
+                    <h1 class="max-w-xl text-4xl font-black leading-[1.05] tracking-tight text-slate-950 xl:text-4xl">
+                        Dashboard Admin CV. PATDARA KUSUMA JAYA
+                    </h1>
+                    <h2 class="mt-6 max-w-xl text-2xl font-extrabold leading-snug tracking-tight text-slate-600 xl:text-3xl">
+                        Karyawan Office Boy Penempatan Markas Besar Angkatan Darat
+                    </h2>
                 </div>
             </div>
-
-            <div class="relative z-10 max-w-xl">
-                <span class="mb-5 inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-bold text-blue-100 backdrop-blur">Modern attendance operations</span>
-                <h1 class="text-5xl font-black leading-tight tracking-tight">Kelola presensi, pengajuan, dan komunikasi dalam satu dashboard.</h1>
-                <p class="mt-6 max-w-lg text-base font-medium leading-8 text-slate-300">Antarmuka admin yang bersih membantu tim membaca data cepat, mengambil keputusan, dan menjaga proses operasional tetap rapi.</p>
-                <div class="mt-8 grid max-w-lg grid-cols-3 gap-3">
-                    <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
-                        <p class="text-2xl font-black">Live</p>
-                        <p class="mt-1 text-xs font-semibold text-white/55">Attendance</p>
-                    </div>
-                    <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
-                        <p class="text-2xl font-black">Face</p>
-                        <p class="mt-1 text-xs font-semibold text-white/55">Verification</p>
-                    </div>
-                    <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
-                        <p class="text-2xl font-black">Admin</p>
-                        <p class="mt-1 text-xs font-semibold text-white/55">Control</p>
-                    </div>
-                </div>
-            </div>
-
-            <p class="relative z-10 text-xs font-semibold text-white/45">Premium dashboard experience for {{ now()->year }}</p>
         </section>
 
         <section class="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-12">

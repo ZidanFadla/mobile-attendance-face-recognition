@@ -8,6 +8,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Admin\CashAdvanceRequestController;
 use App\Http\Controllers\Admin\LeaveRequestController;
+use App\Http\Controllers\Admin\ReportExportController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -29,7 +30,7 @@ Route::get('/dashboard', fn() => redirect()->route('admin.dashboard'))
     ->name('dashboard');
 
 // =============================================
-// Admin Panel — 4 halaman utama
+// Admin Panel â€” 4 halaman utama
 // =============================================
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
@@ -45,6 +46,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // 4. Rekap & Laporan
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/excel', [ReportExportController::class, 'exportExcel'])->name('reports.export.excel');
+    Route::get('/reports/export/pdf', [ReportExportController::class, 'exportPdf'])->name('reports.export.pdf');
 
     // 5. Pesan ke Karyawan
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

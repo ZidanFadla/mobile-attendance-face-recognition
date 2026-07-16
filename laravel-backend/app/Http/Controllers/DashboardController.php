@@ -2,34 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\Employee;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
+        $todayStart = Carbon::today()->startOfDay();
+        $todayEnd = $todayStart->copy()->endOfDay();
 
-        // Statistik sederhana
         $totalKaryawan = Employee::count();
 
-        $hadirHariIni = Attendance::whereDate('timestamp', $today)
-            ->where('type', 'Masuk')
-            ->distinct('employee_id')
-            ->count('employee_id');
+        $todayStats = Attendance::query()
+            ->whereBetween('timestamp', [$todayStart, $todayEnd])
+            ->selectRaw(
+                'COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as hadir_hari_ini,
+                SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as terlambat_hari_ini,
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur_hari_ini',
+                ['Masuk', 'Masuk', 'telat']
+            )
+            ->first();
 
-        $terlatHariIni = Attendance::whereDate('timestamp', $today)
-            ->where('type', 'Masuk')
-            ->where('status', 'telat')
-            ->count();
-
-        $lemburHariIni = Attendance::whereDate('timestamp', $today)
-            ->where('is_lembur', true)
-            ->count();
-
-        // 10 absensi terbaru
         $recentAttendance = Attendance::with('employee:id,name,jabatan')
             ->orderBy('timestamp', 'desc')
             ->limit(10)
@@ -37,9 +32,9 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', [
             'totalKaryawan' => $totalKaryawan,
-            'hadirHariIni' => $hadirHariIni,
-            'terlatHariIni' => $terlatHariIni,
-            'lemburHariIni' => $lemburHariIni,
+            'hadirHariIni' => (int) ($todayStats->hadir_hari_ini ?? 0),
+            'terlatHariIni' => (int) ($todayStats->terlambat_hari_ini ?? 0),
+            'lemburHariIni' => (int) ($todayStats->lembur_hari_ini ?? 0),
             'recentAttendance' => $recentAttendance,
         ]);
     }

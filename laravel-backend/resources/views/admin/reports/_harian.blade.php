@@ -1,9 +1,3 @@
-<form method="GET" class="flex items-center gap-3 mb-6">
-    <input type="hidden" name="tab" value="harian">
-    <input type="date" name="date" value="{{ $date }}" class="input-field !w-auto">
-    <button type="submit" class="btn-primary !py-2">Filter</button>
-</form>
-
 <div class="grid grid-cols-3 gap-4 mb-6">
     <div class="bg-emerald-50 rounded-2xl p-5 text-center">
         <p class="text-2xl font-extrabold text-emerald-700">{{ $totalMasuk }}</p>
@@ -29,7 +23,7 @@
     <tbody class="divide-y divide-slate-100/80">
         @forelse($attendances as $att)
             <tr class="hover:bg-gray-50/50">
-                <td class="px-4 py-3 font-medium text-slate-900">{{ $att->name }}</td>
+                <td class="px-4 py-3 font-medium text-slate-900">{{ $att->employee->name ?? $att->name }}</td>
                 <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold {{ $att->type === 'Masuk' ? 'bg-emerald-100 text-emerald-700 rounded-full' : 'bg-blue-100 text-blue-700 rounded-full' }}">{{ $att->type }}</span></td>
                 <td class="px-4 py-3 font-mono text-slate-600">{{ \Carbon\Carbon::parse($att->timestamp)->format('H:i') }}</td>
                 <td class="px-4 py-3">

@@ -38,9 +38,12 @@ class AttendanceApiController extends Controller
         $isLembur = false;
         $lemburFee = 0;
 
+        $dayStart = $timestamp->copy()->startOfDay();
+        $dayEnd = $timestamp->copy()->endOfDay();
+
         $alreadyExists = Attendance::where('employee_id', $employee->id)
             ->where('type', $type)
-            ->whereDate('timestamp', $timestamp->toDateString())
+            ->whereBetween('timestamp', [$dayStart, $dayEnd])
             ->exists();
 
         if ($alreadyExists) {

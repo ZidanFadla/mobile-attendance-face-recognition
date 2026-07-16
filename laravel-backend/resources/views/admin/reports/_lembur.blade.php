@@ -1,9 +1,3 @@
-<form method="GET" class="flex items-center gap-3 mb-6">
-    <input type="hidden" name="tab" value="lembur">
-    <input type="month" name="month" value="{{ $month }}" class="input-field !w-auto">
-    <button type="submit" class="btn-primary !py-2">Filter</button>
-</form>
-
 <table class="w-full text-sm">
     <thead><tr class="bg-slate-50/80">
         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nama</th>

@@ -1,9 +1,3 @@
-<form method="GET" class="flex items-center gap-3 mb-6">
-    <input type="hidden" name="tab" value="bulanan">
-    <input type="month" name="month" value="{{ $month }}" class="input-field !w-auto">
-    <button type="submit" class="btn-primary !py-2">Filter</button>
-</form>
-
 <div class="grid grid-cols-3 gap-4 mb-6">
     <div class="bg-emerald-50 rounded-2xl p-5 text-center">
         <p class="text-2xl font-extrabold text-emerald-700">{{ $totalHadir }}</p>

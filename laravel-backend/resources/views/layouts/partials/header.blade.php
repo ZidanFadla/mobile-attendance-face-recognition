@@ -1,8 +1,8 @@
 @php
-    $unreadCount = \App\Models\Message::where('is_read', false)->count();
-    $pendingLeaveCount = \App\Models\LeaveRequest::where('status', 'pending')->count();
-    $pendingCashAdvanceCount = \App\Models\CashAdvanceRequest::where('status', 'pending')->count();
-    $notificationTotal = $unreadCount + $pendingLeaveCount + $pendingCashAdvanceCount;
+    $unreadCount = $adminUnreadCount ?? 0;
+    $pendingLeaveCount = $adminPendingLeaveCount ?? 0;
+    $pendingCashAdvanceCount = $adminPendingCashAdvanceCount ?? 0;
+    $notificationTotal = $adminNotificationTotal ?? ($unreadCount + $pendingLeaveCount + $pendingCashAdvanceCount);
 @endphp
 
 <header class="sticky top-0 z-30 px-4 pt-4 sm:px-6 lg:px-10 lg:pt-6">

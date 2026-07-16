@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\Employee;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
@@ -16,10 +15,12 @@ class AttendanceController extends Controller
     {
         $date = $request->get('date', today()->format('Y-m-d'));
         $search = $request->get('search');
+        $dayStart = Carbon::parse($date)->startOfDay();
+        $dayEnd = $dayStart->copy()->endOfDay();
 
         // Ambil semua absensi di tanggal tersebut
         $query = Attendance::with('employee:id,name,jabatan')
-            ->whereDate('timestamp', $date)
+            ->whereBetween('timestamp', [$dayStart, $dayEnd])
             ->orderBy('timestamp', 'asc');
 
         if ($search) {

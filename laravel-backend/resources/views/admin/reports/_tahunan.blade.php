@@ -1,13 +1,3 @@
-<form method="GET" class="flex items-center gap-3 mb-6">
-    <input type="hidden" name="tab" value="tahunan">
-    <select name="year" class="input-field !w-auto">
-        @for($y = now()->year; $y >= now()->year - 3; $y--)
-            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-        @endfor
-    </select>
-    <button type="submit" class="btn-primary !py-2">Filter</button>
-</form>
-
 <table class="w-full text-sm">
     <thead><tr class="bg-slate-50/80">
         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Bulan</th>
