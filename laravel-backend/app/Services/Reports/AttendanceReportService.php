@@ -138,28 +138,29 @@ class AttendanceReportService
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = $start->copy()->endOfYear();
 
-        $rows = collect(range(1, 12))->map(function ($month, $index) use ($year) {
-            $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
-            $monthEnd = $monthStart->copy()->endOfMonth();
+        $statsByMonth = Attendance::query()
+            ->whereBetween('timestamp', [$start, $end])
+            ->selectRaw(
+                'EXTRACT(MONTH FROM "timestamp")::int as month_number,
+                COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as hadir,
+                SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as telat,
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur',
+                ['Masuk', 'Masuk', 'telat']
+            )
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM "timestamp")'))
+            ->get()
+            ->keyBy('month_number');
 
-            $hadir = Attendance::where('type', 'Masuk')
-                ->whereBetween('timestamp', [$monthStart, $monthEnd])
-                ->distinct('employee_id')
-                ->count('employee_id');
-            $telat = Attendance::where('type', 'Masuk')
-                ->where('status', 'telat')
-                ->whereBetween('timestamp', [$monthStart, $monthEnd])
-                ->count();
-            $lembur = Attendance::where('is_lembur', true)
-                ->whereBetween('timestamp', [$monthStart, $monthEnd])
-                ->count();
+        $rows = collect(range(1, 12))->map(function ($month, $index) use ($year, $statsByMonth) {
+            $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+            $stats = $statsByMonth->get($month);
 
             return [
                 'No' => $index + 1,
                 'Bulan' => $monthStart->translatedFormat('F'),
-                'Hadir' => $hadir,
-                'Terlambat' => $telat,
-                'Lembur' => $lembur,
+                'Hadir' => (int) ($stats->hadir ?? 0),
+                'Terlambat' => (int) ($stats->telat ?? 0),
+                'Lembur' => (int) ($stats->lembur ?? 0),
             ];
         });
 

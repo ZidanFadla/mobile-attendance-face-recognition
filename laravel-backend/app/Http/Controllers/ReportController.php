@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
@@ -34,7 +35,9 @@ class ReportController extends Controller
                 'tahunan' => 'yearly',
                 default => 'daily',
             },
-            'employeesFilter' => Employee::orderBy('name')->get(['id', 'name', 'jabatan']),
+            'employeesFilter' => Cache::store('file')->remember('admin_report_employee_filter_options', 60, fn () =>
+                Employee::orderBy('name')->get(['id', 'name', 'jabatan'])
+            ),
         ]));
     }
 
@@ -91,19 +94,33 @@ class ReportController extends Controller
     private function rekapTahunan(Request $request): array
     {
         $year = (int) $request->get('year', now()->year);
+        $start = Carbon::create($year, 1, 1)->startOfYear();
+        $end = $start->copy()->endOfYear();
 
-        $monthlyData = [];
-        for ($m = 1; $m <= 12; $m++) {
-            $start = Carbon::create($year, $m, 1)->startOfMonth();
-            $end = $start->copy()->endOfMonth();
+        $statsByMonth = Attendance::query()
+            ->whereBetween('timestamp', [$start, $end])
+            ->selectRaw(
+                'EXTRACT(MONTH FROM "timestamp")::int as month_number,
+                COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as hadir,
+                SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as telat,
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur',
+                ['Masuk', 'Masuk', 'telat']
+            )
+            ->groupBy(DB::raw('EXTRACT(MONTH FROM "timestamp")'))
+            ->get()
+            ->keyBy('month_number');
 
-            $monthlyData[] = [
-                'bulan' => $start->translatedFormat('F'),
-                'hadir' => Attendance::where('type', 'Masuk')->whereBetween('timestamp', [$start, $end])->distinct('employee_id')->count('employee_id'),
-                'telat' => Attendance::where('type', 'Masuk')->where('status', 'telat')->whereBetween('timestamp', [$start, $end])->count(),
-                'lembur' => Attendance::where('is_lembur', true)->whereBetween('timestamp', [$start, $end])->count(),
+        $monthlyData = collect(range(1, 12))->map(function ($month) use ($year, $statsByMonth) {
+            $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+            $stats = $statsByMonth->get($month);
+
+            return [
+                'bulan' => $monthStart->translatedFormat('F'),
+                'hadir' => (int) ($stats->hadir ?? 0),
+                'telat' => (int) ($stats->telat ?? 0),
+                'lembur' => (int) ($stats->lembur ?? 0),
             ];
-        }
+        })->all();
 
         return [
             'year' => $year,
