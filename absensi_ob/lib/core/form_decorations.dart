@@ -11,30 +11,30 @@ InputDecoration buildInputDecoration(String label) {
       fontWeight: FontWeight.w600,
     ),
     floatingLabelStyle: TextStyle(
-      color: AppTheme.armyGreen,
+      color: AppTheme.clayPrimary,
       fontWeight: FontWeight.w700,
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     filled: true,
     fillColor: AppTheme.surfaceAlt,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       borderSide: BorderSide(color: AppTheme.border),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       borderSide: BorderSide(color: AppTheme.border),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: AppTheme.armyGreen, width: 2),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+      borderSide: BorderSide(color: AppTheme.clayPrimary, width: 2),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       borderSide: BorderSide(color: AppTheme.error),
     ),
     focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
       borderSide: BorderSide(color: AppTheme.error, width: 2),
     ),
   );

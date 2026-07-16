@@ -7,6 +7,7 @@ import '../services/face_recognition_service.dart';
 import '../services/session_manager.dart';
 import '../services/message_service.dart';
 import '../services/offline_attendance_queue.dart';
+import '../widgets/design_system/soft_components.dart';
 import 'face_scan_simple_page.dart';
 import 'home_page.dart';
 import 'history_page.dart';
@@ -96,7 +97,9 @@ class _MainShellState extends State<MainShell> {
       return;
     }
     final attendanceResult = await _controller.clockIn(File(path), embedding);
-    if (mounted) _showResultDialog(attendanceResult.message, attendanceResult.success);
+    if (mounted) {
+      _showResultDialog(attendanceResult.message, attendanceResult.success);
+    }
   }
 
   Future<void> _onClockOut() async {
@@ -114,7 +117,9 @@ class _MainShellState extends State<MainShell> {
       return;
     }
     final attendanceResult = await _controller.clockOut(File(path), embedding);
-    if (mounted) _showResultDialog(attendanceResult.message, attendanceResult.success);
+    if (mounted) {
+      _showResultDialog(attendanceResult.message, attendanceResult.success);
+    }
   }
 
   Future<void> _onRegisterFace() async {
@@ -183,35 +188,47 @@ class _MainShellState extends State<MainShell> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text(
-          'Registrasi Wajah',
-          style: TextStyle(color: AppTheme.textDark),
-        ),
-        content: Text(
-          'Wajah kamu belum terdaftar. Silakan registrasi wajah terlebih dahulu untuk bisa absen.',
-          style: TextStyle(color: AppTheme.textMuted),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _onRegisterFace();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.btnGreen,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SoftCard(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.face_retouching_natural_rounded,
+                color: AppTheme.clayPrimary,
+                size: 54,
               ),
-            ),
-            child: const Text(
-              'Registrasi Sekarang',
-              style: TextStyle(color: Colors.white),
-            ),
+              const SizedBox(height: 18),
+              Text(
+                'Registrasi Wajah',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppTheme.textDark,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Wajah kamu belum terdaftar. Silakan registrasi wajah terlebih dahulu untuk bisa absen.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, height: 1.45),
+              ),
+              const SizedBox(height: 22),
+              ClayButton(
+                label: 'Registrasi Sekarang',
+                icon: Icons.arrow_forward_rounded,
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _onRegisterFace();
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -221,33 +238,39 @@ class _MainShellState extends State<MainShell> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
-        backgroundColor: AppTheme.cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        child: Padding(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SoftCard(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.check_circle, color: AppTheme.success, size: 56),
+              Icon(
+                Icons.check_circle_rounded,
+                color: AppTheme.success,
+                size: 56,
+              ),
               const SizedBox(height: 16),
               Text(
-                '✅ Foto $photoNumber/3 berhasil!\nSiap untuk foto berikutnya.',
+                'Foto $photoNumber/3 berhasil',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, color: AppTheme.textDark),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textDark,
+                ),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
+              const SizedBox(height: 8),
+              Text(
+                'Siap untuk foto berikutnya.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted),
+              ),
+              const SizedBox(height: 22),
+              ClayButton(
+                label: 'Lanjut Foto Berikutnya',
+                icon: Icons.arrow_forward_rounded,
                 onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.btnGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  'Lanjut Foto Berikutnya',
-                  style: TextStyle(color: Colors.white),
-                ),
               ),
             ],
           ),
@@ -260,15 +283,15 @@ class _MainShellState extends State<MainShell> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: AppTheme.cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        child: Padding(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SoftCard(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                success ? Icons.check_circle : Icons.error,
+                success ? Icons.check_circle_rounded : Icons.error_rounded,
                 color: success ? AppTheme.success : AppTheme.error,
                 size: 56,
               ),
@@ -276,18 +299,19 @@ class _MainShellState extends State<MainShell> {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, color: AppTheme.textDark),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: success ? AppTheme.success : AppTheme.error,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textDark,
+                  height: 1.4,
                 ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 22),
+              ClayButton(
+                label: 'OK',
+                icon: success ? Icons.check_rounded : Icons.close_rounded,
+                destructive: !success,
+                onPressed: () => Navigator.pop(ctx),
               ),
             ],
           ),
@@ -295,7 +319,6 @@ class _MainShellState extends State<MainShell> {
       ),
     );
   }
-
   // ── Build ──────────────────────────────────────────────────
 
   @override
@@ -333,126 +356,60 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildLoadingOverlay() {
-    return Container(
-      color: Colors.black54,
-      child: Center(
-        child: Dialog(
-          backgroundColor: AppTheme.cardDark,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: AppTheme.btnGreen),
-                const SizedBox(height: 40),
-                Text(
-                  _controller.loadingMessage,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return AnimatedContainer(
+      duration: AppTheme.fastTransition,
+      color: Colors.black.withValues(alpha: AppTheme.isDark ? 0.58 : 0.32),
+      child: Center(child: LoadingCard(message: _controller.loadingMessage)),
     );
   }
 
   Widget _buildBottomNav() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.navSurface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (i) => setState(() => _currentIndex = i),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: AppTheme.navSurface,
-              selectedItemColor: AppTheme.btnGreen,
-              unselectedItemColor: AppTheme.textMuted,
-              selectedFontSize: 12,
-              unselectedFontSize: 11,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
-              elevation: 0,
-              items: [
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  label: 'Home',
+    return ValueListenableBuilder<int>(
+      valueListenable: MessageService.unreadCountNotifier,
+      builder: (context, unreadCount, _) {
+        final badge = unreadCount <= 0
+            ? null
+            : Container(
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.error,
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: AppTheme.surface, width: 2),
                 ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today_rounded),
-                  label: 'Absensi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.notifications_outlined),
-                      ValueListenableBuilder<int>(
-                        valueListenable: MessageService.unreadCountNotifier,
-                        builder: (context, unreadCount, _) {
-                          if (unreadCount <= 0) return const SizedBox.shrink();
-                          return Positioned(
-                            right: -4,
-                            top: -2,
-                            child: Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 14,
-                                minHeight: 14,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '$unreadCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                child: Center(
+                  child: Text(
+                    '$unreadCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  label: 'Notifikasi',
                 ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.more_horiz),
-                  label: 'More',
-                ),
-              ],
+              );
+
+        return SoftNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          items: [
+            const SoftNavigationItem(icon: Icons.home_rounded, label: 'Home'),
+            const SoftNavigationItem(
+              icon: Icons.calendar_month_rounded,
+              label: 'Absensi',
             ),
-          ),
-        ),
-      ),
+            SoftNavigationItem(
+              icon: Icons.notifications_rounded,
+              label: 'Info',
+              badge: badge,
+            ),
+            const SoftNavigationItem(
+              icon: Icons.grid_view_rounded,
+              label: 'More',
+            ),
+          ],
+        );
+      },
     );
   }
 }

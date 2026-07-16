@@ -191,18 +191,13 @@ class _ProfileHeader extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [AppTheme.cardShadow],
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusXl),
       child: Row(
         children: [
           Container(
             width: 58,
             height: 58,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
             ),
@@ -378,12 +373,7 @@ class _ThemeToggleCard extends StatelessWidget {
       builder: (context, isDark, child) {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.border),
-            boxShadow: [AppTheme.cardShadow],
-          ),
+          decoration: AppTheme.clayDecoration(radius: AppTheme.radiusLg),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Material(
@@ -444,7 +434,7 @@ class _ThemeToggleCard extends StatelessWidget {
                       value: isDark,
                       activeThumbColor: AppTheme.btnGreen,
                       onChanged: (val) {
-                        AppTheme.isDarkModeNotifier.value = val;
+                        AppTheme.setDarkMode(val);
                       },
                     ),
                   ],

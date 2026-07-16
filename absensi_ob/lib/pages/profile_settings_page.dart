@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
 import '../widgets/request_forms/request_form_widgets.dart';
+import '../widgets/design_system/soft_components.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
   final String name;
@@ -379,17 +380,7 @@ class _ProfileSummary extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusLg),
       child: Row(
         children: [
           Stack(
@@ -473,11 +464,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -530,33 +517,11 @@ class _PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton.icon(
-        onPressed: isLoading ? null : onPressed,
-        icon: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : Icon(icon, size: 19),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.armyGreen,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppTheme.armyGreen.withValues(alpha: 0.55),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-        ),
-      ),
+    return ClayButton(
+      label: label,
+      icon: icon,
+      isLoading: isLoading,
+      onPressed: isLoading ? null : onPressed,
     );
   }
 }

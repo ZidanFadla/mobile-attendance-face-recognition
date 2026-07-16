@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../core/app_theme.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
+import '../widgets/design_system/soft_components.dart';
 import 'register_page.dart';
 import '../services/permission_service.dart';
 
@@ -147,7 +148,7 @@ class _LoginPageState extends State<LoginPage>
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: AppTheme.gradientArmyGreen,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -205,7 +206,7 @@ class _LoginPageState extends State<LoginPage>
           width: 44,
           height: 3.5,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: AppTheme.gradientArmyGreen),
+            gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -215,12 +216,7 @@ class _LoginPageState extends State<LoginPage>
 
   Widget _buildFormCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [AppTheme.cardShadow],
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusXl),
       padding: const EdgeInsets.all(22),
       child: Column(
         children: [
@@ -261,50 +257,11 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Widget _buildLoginButton() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: 54,
-      decoration: BoxDecoration(
-        gradient: _isLoading
-            ? null
-            : const LinearGradient(
-                colors: AppTheme.gradientArmyGreen,
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-        color: _isLoading ? AppTheme.border : null,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _isLoading ? [] : [AppTheme.buttonShadow],
-      ),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        onPressed: _isLoading ? null : _login,
-        child: _isLoading
-            ? SizedBox(
-                height: 22,
-                width: 22,
-                child: CircularProgressIndicator(
-                  color: AppTheme.armyGreen,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : const Text(
-                'Masuk',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                ),
-              ),
-      ),
+    return ClayButton(
+      label: 'Masuk',
+      icon: Icons.login_rounded,
+      isLoading: _isLoading,
+      onPressed: _isLoading ? null : _login,
     );
   }
 

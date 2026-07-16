@@ -1,14 +1,13 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../controllers/attendance_controller.dart';
 import '../core/app_constants.dart';
 import '../core/app_theme.dart';
 import '../services/session_manager.dart';
 
-/// Pure display widget for the Home tab.
-/// All business logic is in [MainShell].
-/// Refactored to fit 100% within a single non-scrollable premium dashboard.
 class HomePage extends StatefulWidget {
   final AttendanceController controller;
   final String name;
@@ -47,7 +46,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _ctrl.addListener(_onControllerUpdate);
-
     _updateTime();
     _clockTimer = Timer.periodic(
       const Duration(seconds: 1),
@@ -110,14 +108,13 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               _buildStatusCard(),
               const SizedBox(height: 12),
               _buildPerformanceSection(),
+              const SizedBox(height: 112),
             ],
           ),
         ),
       ),
     );
   }
-
-  // ── App Bar ────────────────────────────────────────────────
 
   Widget _buildAppBar() {
     final initial = widget.name.trim().isEmpty
@@ -129,9 +126,10 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           width: 42,
           height: 42,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
+            boxShadow: [AppTheme.buttonShadow],
           ),
           clipBehavior: Clip.antiAlias,
           child:
@@ -140,7 +138,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ? Image.network(
                   widget.profilePhotoUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, e, st) => _AvatarInitial(initial),
+                  errorBuilder: (_, _, _) => _AvatarInitial(initial),
                 )
               : _AvatarInitial(initial),
         ),
@@ -154,8 +152,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
                 ),
               ),
               const SizedBox(height: 2),
@@ -164,7 +162,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 style: TextStyle(
                   color: AppTheme.textDark,
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -175,15 +173,13 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ── Integrated Attendance HUD Card ───────────────────────────
-
   Widget _buildMainAttendanceCard() {
-    final bool hasClockedIn = _ctrl.isClockedIn;
-    final bool hasClockedOut = _ctrl.clockOutTime != '--:--';
-    final bool showClockOut = hasClockedIn && !hasClockedOut;
-    final bool allDone = hasClockedIn && hasClockedOut;
+    final hasClockedIn = _ctrl.isClockedIn;
+    final hasClockedOut = _ctrl.clockOutTime != '--:--';
+    final showClockOut = hasClockedIn && !hasClockedOut;
+    final allDone = hasClockedIn && hasClockedOut;
 
-    final String label = allDone
+    final label = allDone
         ? 'SELESAI'
         : showClockOut
         ? 'CLOCK OUT'
@@ -193,18 +189,18 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         : showClockOut
         ? widget.onClockOut
         : widget.onClockIn;
-    final Color btnColor = allDone
-        ? const Color(0xFF4A5568)
+    final btnColor = allDone
+        ? AppTheme.textMuted
         : showClockOut
         ? AppTheme.btnRed
         : AppTheme.btnGreen;
-    final Color btnColorDark = allDone
-        ? const Color(0xFF3A4555)
+    final btnColorDark = allDone
+        ? AppTheme.textLight
         : showClockOut
-        ? const Color(0xFF6B2A2A)
+        ? const Color(0xFFB63A48)
         : AppTheme.btnGreenDark;
-    final IconData btnIcon = allDone
-        ? Icons.check_circle_outline
+    final btnIcon = allDone
+        ? Icons.check_circle_outline_rounded
         : Icons.face_retouching_natural_rounded;
 
     final parts = _currentTime.split(':');
@@ -213,123 +209,89 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [AppTheme.cardShadow],
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusXl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top: Clock and Date + Status Tag in a unified clean Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _currentDate,
-                    style: TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        hours,
-                        style: TextStyle(
-                          color: AppTheme.textDark,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          height: 1.0,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      Text(
-                        ':',
-                        style: TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          height: 1.0,
-                        ),
-                      ),
-                      Text(
-                        minutes,
-                        style: TextStyle(
-                          color: AppTheme.textDark,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          height: 1.0,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceAlt,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: allDone
-                            ? AppTheme.textMuted
-                            : (showClockOut
-                                  ? AppTheme.warning
-                                  : AppTheme.success),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
                     Text(
-                      allDone
-                          ? 'Sesi Hari Ini Selesai'
-                          : (showClockOut ? 'Sedang Bekerja' : 'Belum Absen'),
+                      _currentDate,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: AppTheme.textDark,
+                        color: AppTheme.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const SizedBox(height: 2),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          hours,
+                          style: TextStyle(
+                            color: AppTheme.textDark,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            height: 1.0,
+                          ),
+                        ),
+                        Text(
+                          ':',
+                          style: TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            height: 1.0,
+                          ),
+                        ),
+                        Text(
+                          minutes,
+                          style: TextStyle(
+                            color: AppTheme.textDark,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(width: 10),
+              _StatusBadge(
+                label: allDone
+                    ? 'Sesi selesai'
+                    : showClockOut
+                    ? 'Sedang bekerja'
+                    : 'Belum absen',
+                color: allDone
+                    ? AppTheme.textMuted
+                    : showClockOut
+                    ? AppTheme.warning
+                    : AppTheme.success,
+              ),
             ],
           ),
-
-          // Middle: Massive Centered Pulsing Face-Scan Button
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Adaptive button sizing: 48% of available width, clamped 140–220
                   final buttonSize = (constraints.maxWidth * 0.48).clamp(
                     140.0,
                     220.0,
                   );
-                  final mainSize = buttonSize * 0.643; // ~135/210 ratio
+                  final mainSize = buttonSize * 0.643;
                   final ring1 = buttonSize * 0.976;
                   final ring2 = buttonSize * 0.833;
                   final ring3 = buttonSize * 0.690;
@@ -351,7 +313,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [
-                                    // State-colored animated outer rings
                                     _buildRing(
                                       ring1,
                                       1.5,
@@ -365,7 +326,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       btnColor,
                                     ),
                                     _buildRing(ring3, 1.5, 0.3, btnColor),
-                                    // Main button circle with glowing breathing shadow
                                     Container(
                                       width: mainSize,
                                       height: mainSize,
@@ -379,25 +339,19 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         boxShadow: [
                                           BoxShadow(
                                             color: btnColor.withValues(
-                                              alpha: 0.45,
+                                              alpha: 0.36,
                                             ),
-                                            blurRadius:
-                                                20 +
-                                                (_pulseAnimation.value - 1.0) *
-                                                    150,
-                                            spreadRadius:
-                                                3 +
-                                                (_pulseAnimation.value - 1.0) *
-                                                    40,
-                                            offset: const Offset(0, 4),
+                                            blurRadius: 28,
+                                            spreadRadius: -2,
+                                            offset: const Offset(0, 12),
                                           ),
                                           BoxShadow(
                                             color: Colors.white.withValues(
-                                              alpha: 0.15,
+                                              alpha: 0.18,
                                             ),
-                                            blurRadius: 4,
-                                            spreadRadius: 1,
-                                            offset: const Offset(0, -2),
+                                            blurRadius: 8,
+                                            spreadRadius: -6,
+                                            offset: const Offset(-4, -4),
                                           ),
                                         ],
                                       ),
@@ -408,7 +362,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           Icon(
                                             btnIcon,
                                             color: Colors.white,
-                                            size: 56,
+                                            size: 52,
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
@@ -417,7 +371,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               color: Colors.white,
                                               fontSize: 14,
                                               fontWeight: FontWeight.w900,
-                                              letterSpacing: 1.5,
+                                              letterSpacing: 1.2,
                                             ),
                                           ),
                                         ],
@@ -436,31 +390,28 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          // Bottom: Location Tag
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: AppTheme.surfaceAlt,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(color: AppTheme.border),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.location_on_rounded,
-                  color: AppTheme.armyGreen,
-                  size: 13,
+                  color: AppTheme.clayPrimary,
+                  size: 15,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _ctrl.alamatMasuk ?? 'Menunggu lokasi gps...',
+                    _ctrl.alamatMasuk ?? 'Menunggu lokasi GPS...',
                     style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -487,23 +438,17 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // ── Status Card (Minimalist Bar) ─────────────────────────────
-
   Widget _buildStatusCard() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.border),
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusLg),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _StatusItem(
             icon: Icons.login_rounded,
-            iconBgColor: AppTheme.btnGreenDark.withValues(alpha: 0.15),
-            iconColor: AppTheme.btnGreen,
+            iconBgColor: AppTheme.success.withValues(alpha: 0.12),
+            iconColor: AppTheme.success,
             time: _ctrl.clockInTime,
             label: 'Clock In',
             accentColor: AppTheme.success,
@@ -511,7 +456,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Container(width: 1, height: 42, color: AppTheme.dividerColor),
           _StatusItem(
             icon: Icons.logout_rounded,
-            iconBgColor: AppTheme.error.withValues(alpha: 0.15),
+            iconBgColor: AppTheme.error.withValues(alpha: 0.12),
             iconColor: AppTheme.error,
             time: _ctrl.clockOutTime,
             label: 'Clock Out',
@@ -520,7 +465,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Container(width: 1, height: 42, color: AppTheme.dividerColor),
           _StatusItem(
             icon: Icons.timer_outlined,
-            iconBgColor: AppTheme.info.withValues(alpha: 0.15),
+            iconBgColor: AppTheme.info.withValues(alpha: 0.12),
             iconColor: AppTheme.info,
             time: _calculateDuration(),
             label: 'Durasi Kerja',
@@ -547,8 +492,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return '$h:$m';
   }
 
-  // ── Performance Section ──────────────────────────────────────
-
   Map<String, dynamic> _calculatePerformanceMetrics() {
     final records = SessionManager.getRecords(widget.name);
     final now = DateTime.now();
@@ -565,12 +508,12 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         .toList();
 
     final totalPresent = monthRecords.length;
+    var onTimeCount = 0;
 
-    int onTimeCount = 0;
     for (final r in monthRecords) {
       final minutes = r.timestamp.hour * 60 + r.timestamp.minute;
-      final startMinutes = AppConstants.clockInStartHour * 60 +
-          AppConstants.clockInStartMinute;
+      final startMinutes =
+          AppConstants.clockInStartHour * 60 + AppConstants.clockInStartMinute;
       final endMinutes =
           AppConstants.clockInEndHour * 60 + AppConstants.clockInEndMinute;
       if (minutes >= startMinutes && minutes <= endMinutes) {
@@ -605,19 +548,18 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         .toList();
 
     final weekDays = weekRecords.map((r) => r.timestamp.day).toSet();
-    final weekCount = weekDays.length;
 
     return {
       'totalPresent': totalPresent,
       'onTimePct': onTimePct,
       'lateCount': lateCount,
-      'weekCount': weekCount,
+      'weekCount': weekDays.length,
     };
   }
 
   String _getIndonesianMonthYear() {
     final now = DateTime.now();
-    final months = [
+    const months = [
       'Januari',
       'Februari',
       'Maret',
@@ -636,56 +578,53 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildPerformanceSection() {
     final metrics = _calculatePerformanceMetrics();
-    final int totalPresent = metrics['totalPresent'] as int;
-    final double onTimePct = metrics['onTimePct'] as double;
-    final int lateCount = metrics['lateCount'] as int;
-    final int weekCount = metrics['weekCount'] as int;
+    final totalPresent = metrics['totalPresent'] as int;
+    final onTimePct = metrics['onTimePct'] as double;
+    final lateCount = metrics['lateCount'] as int;
+    final weekCount = metrics['weekCount'] as int;
 
-    String performanceLabel = 'Cukup';
+    var performanceLabel = 'Cukup';
     if (onTimePct >= 95) {
       performanceLabel = 'Sangat Baik';
     } else if (onTimePct >= 85) {
       performanceLabel = 'Baik';
     }
 
-    final double weekProgress = (weekCount / 5.0).clamp(0.0, 1.0);
+    final weekProgress = (weekCount / 5.0).clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [AppTheme.cardShadow],
-      ),
+      decoration: AppTheme.clayDecoration(radius: AppTheme.radiusXl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'PERFORMA BULAN INI',
-                    style: TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PERFORMA BULAN INI',
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _getIndonesianMonthYear(),
-                    style: TextStyle(
-                      color: AppTheme.textDark,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
+                    const SizedBox(height: 2),
+                    Text(
+                      _getIndonesianMonthYear(),
+                      style: TextStyle(
+                        color: AppTheme.textDark,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -694,14 +633,14 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.armyGreenLight,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
                 child: Text(
                   performanceLabel,
                   style: TextStyle(
                     color: AppTheme.armyGreen,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -716,7 +655,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
@@ -724,16 +663,16 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 style: TextStyle(
                   color: AppTheme.textDark,
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              height: 6,
+              height: 7,
               child: LinearProgressIndicator(
                 value: weekProgress,
                 backgroundColor: AppTheme.surfaceAlt,
@@ -786,7 +725,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: AppTheme.surfaceAlt,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(color: AppTheme.border),
         ),
         child: Column(
@@ -800,10 +739,12 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
             const SizedBox(height: 6),
             Text(
               value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: AppTheme.textDark,
                 fontSize: 16,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 2),
@@ -812,7 +753,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               style: TextStyle(
                 color: AppTheme.textMuted,
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -822,10 +763,9 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 }
 
-// ── Reusable Widgets ─────────────────────────────────────────
-
 class _AvatarInitial extends StatelessWidget {
   final String initial;
+
   const _AvatarInitial(this.initial);
 
   @override
@@ -836,8 +776,46 @@ class _AvatarInitial extends StatelessWidget {
         style: const TextStyle(
           color: Colors.white,
           fontSize: 16,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
         ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatusBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.textDark,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -868,7 +846,10 @@ class _StatusItem extends StatelessWidget {
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: iconBgColor,
+            borderRadius: BorderRadius.circular(15),
+          ),
           child: Icon(icon, color: iconColor, size: 20),
         ),
         const SizedBox(height: 6),
@@ -876,9 +857,8 @@ class _StatusItem extends StatelessWidget {
           time,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w900,
             color: accentColor,
-            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 2),
@@ -887,7 +867,7 @@ class _StatusItem extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             color: AppTheme.textMuted,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
