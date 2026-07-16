@@ -7,8 +7,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     {{-- Form Kirim Pesan --}}
     <div class="lg:col-span-1">
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-24">
-            <h3 class="text-base font-bold text-gray-900 mb-5">Kirim Pesan Baru</h3>
+        <div class="clay-panel p-6 sticky top-24">
+            <h3 class="text-base font-bold text-slate-900 mb-5">Kirim Pesan Baru</h3>
 
             <form method="POST" action="{{ route('admin.messages.store') }}" enctype="multipart/form-data" id="messageForm">
                 @csrf
@@ -16,54 +16,54 @@
                 <div class="space-y-4">
                     {{-- Penerima --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Penerima</label>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">Penerima</label>
                         <select name="employee_id" class="input-field">
-                            <option value="">🔊 Broadcast (Semua Karyawan)</option>
+                            <option value="">Broadcast (Semua Karyawan)</option>
                             @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}">{{ $emp->name }} — {{ $emp->jabatan }}</option>
+                            <option value="{{ $emp->id }}">{{ $emp->name }} {{ $emp->jabatan }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     {{-- Tipe --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Pesan</label>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">Pesan</label>
                         <textarea name="content" rows="4" class="input-field resize-none" placeholder="Tulis pesan disini...">{{ old('content') }}</textarea>
                     </div>
 
                     {{-- Upload Foto --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">Foto <span class="font-normal text-gray-400">(opsional)</span></label>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">Foto <span class="font-normal text-slate-400">(opsional)</span></label>
                         <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-emerald-400 transition-colors cursor-pointer" onclick="document.getElementById('imageAttachment').click()">
                             <div id="imagePreview" class="hidden mb-2">
                                 <img id="imagePreviewImg" src="" class="max-h-40 mx-auto rounded-xl object-contain" alt="Preview">
                             </div>
                             <div id="imageUploadPrompt">
-                                <svg class="w-7 h-7 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-7 h-7 mx-auto text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                <p class="text-xs text-gray-500">Klik untuk upload foto</p>
-                                <p class="text-xs text-gray-400 mt-0.5">JPG, PNG, GIF • Maks 10MB</p>
+                                <p class="text-xs text-slate-500">Klik untuk upload foto</p>
+                                <p class="text-xs text-slate-400 mt-0.5">JPG, PNG, GIF â€¢ Maks 10MB</p>
                             </div>
                         </div>
                         <input type="file" name="image" id="imageAttachment" class="hidden" accept="image/*"
                             onchange="previewImage(this)">
-                        <p class="text-xs text-gray-400 mt-1" id="imageFileName"></p>
+                        <p class="text-xs text-slate-400 mt-1" id="imageFileName"></p>
                     </div>
 
                     {{-- Upload File --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">File <span class="font-normal text-gray-400">(opsional)</span></label>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">File <span class="font-normal text-slate-400">(opsional)</span></label>
                         <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-emerald-400 transition-colors cursor-pointer" onclick="document.getElementById('fileAttachment').click()">
-                            <svg class="w-7 h-7 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-7 h-7 mx-auto text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                             </svg>
-                            <p class="text-xs text-gray-500">Klik untuk upload file</p>
-                            <p class="text-xs text-gray-400 mt-0.5">PDF, DOC, XLS, dll • Maks 10MB</p>
+                            <p class="text-xs text-slate-500">Klik untuk upload file</p>
+                            <p class="text-xs text-slate-400 mt-0.5">PDF, DOC, XLS, dll â€¢ Maks 10MB</p>
                         </div>
                         <input type="file" name="attachment" id="fileAttachment" class="hidden" accept="*/*"
                             onchange="document.getElementById('fileFileName').textContent = this.files[0]?.name ?? ''">
-                        <p class="text-xs text-gray-400 mt-1" id="fileFileName"></p>
+                        <p class="text-xs text-slate-400 mt-1" id="fileFileName"></p>
                     </div>
 
                     <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2">
@@ -80,10 +80,10 @@
     {{-- Daftar Pesan --}}
     <div class="lg:col-span-2">
         <div class="space-y-4">
-            <h3 class="text-base font-bold text-gray-900">Riwayat Pesan</h3>
+            <h3 class="text-base font-bold text-slate-900">Riwayat Pesan</h3>
 
             @forelse($messages as $msg)
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div class="clay-panel p-5 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3 flex-1 min-w-0">
                         <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -104,11 +104,11 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-sm font-semibold text-gray-900">
-                                    Ke: {{ $msg->employee ? $msg->employee->name : '🔊 Semua Karyawan' }}
+                                <span class="text-sm font-semibold text-slate-900">
+                                    Ke: {{ $msg->employee ? $msg->employee->name : 'ðŸ”Š Semua Karyawan' }}
                                 </span>
-                                <span class="inline-flex px-2 py-0.5 rounded-lg text-xs font-semibold
-                                        {{ $msg->type === 'text' ? 'bg-blue-100 text-blue-700' : (in_array($msg->type, ['image', 'mixed']) ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700') }}">
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-bold
+                                        {{ $msg->type === 'text' ? 'bg-blue-100 text-blue-700 rounded-full' : (in_array($msg->type, ['image', 'mixed']) ? 'bg-amber-100 text-amber-700 rounded-full' : 'bg-gray-100 text-slate-700') }}">
                                     {{ ucfirst($msg->type) }}
                                 </span>
                                 @if(!$msg->is_read)
@@ -116,7 +116,7 @@
                                 @endif
                             </div>
                             @if($msg->content)
-                            <p class="text-sm text-gray-600 line-clamp-2">{{ $msg->content }}</p>
+                            <p class="text-sm text-slate-600 line-clamp-2">{{ $msg->content }}</p>
                             @endif
                             @if($msg->image_path)
                             <button type="button" onclick="openMessageDetail('message-detail-{{ $msg->id }}')" class="mt-3 block text-left">
@@ -132,16 +132,16 @@
                             </a>
                             @endif
                             <div class="mt-3">
-                                <button type="button" onclick="openMessageDetail('message-detail-{{ $msg->id }}')" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-emerald-600">
+                                <button type="button" onclick="openMessageDetail('message-detail-{{ $msg->id }}')" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-emerald-600">
                                     Lihat detail
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-400 mt-2">{{ $msg->created_at->diffForHumans() }} · {{ $msg->sender->name ?? 'Admin' }}</p>
+                            <p class="text-xs text-slate-400 mt-2">{{ $msg->created_at->diffForHumans() }} Â· {{ $msg->sender->name ?? 'Admin' }}</p>
                         </div>
                     </div>
                     <form method="POST" action="{{ route('admin.messages.destroy', $msg) }}" onsubmit="return confirm('Hapus pesan ini?')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button type="submit" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -151,14 +151,14 @@
             </div>
             <div id="message-detail-{{ $msg->id }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4">
                 <div class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-                    <div class="flex items-start justify-between border-b border-gray-100 px-6 py-4">
+                    <div class="flex items-start justify-between border-b border-slate-100/80 px-6 py-4">
                         <div>
-                            <h4 class="text-base font-bold text-gray-900">Detail Pesan</h4>
-                            <p class="mt-1 text-xs text-gray-500">
-                                Ke: {{ $msg->employee ? $msg->employee->name : 'Semua Karyawan' }} · {{ $msg->created_at->format('d M Y, H:i') }}
+                            <h4 class="text-base font-bold text-slate-900">Detail Pesan</h4>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Ke: {{ $msg->employee ? $msg->employee->name : 'Semua Karyawan' }} Â· {{ $msg->created_at->format('d M Y, H:i') }}
                             </p>
                         </div>
-                        <button type="button" onclick="closeMessageDetail('message-detail-{{ $msg->id }}')" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                        <button type="button" onclick="closeMessageDetail('message-detail-{{ $msg->id }}')" class="rounded-lg p-2 text-slate-400 hover:bg-gray-100 hover:text-slate-700">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -166,30 +166,30 @@
                     </div>
                     <div class="space-y-5 px-6 py-5">
                         <div class="flex flex-wrap items-center gap-2 text-xs">
-                            <span class="rounded-lg bg-gray-100 px-2.5 py-1 font-semibold text-gray-700">{{ ucfirst($msg->type) }}</span>
-                            <span class="text-gray-500">Dikirim oleh {{ $msg->sender->name ?? 'Admin' }}</span>
+                            <span class="rounded-lg bg-gray-100 px-2.5 py-1 font-semibold text-slate-700">{{ ucfirst($msg->type) }}</span>
+                            <span class="text-slate-500">Dikirim oleh {{ $msg->sender->name ?? 'Admin' }}</span>
                         </div>
 
                         @if($msg->content)
                         <div>
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Isi Pesan</p>
-                            <div class="whitespace-pre-line rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-700">{{ $msg->content }}</div>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Isi Pesan</p>
+                            <div class="whitespace-pre-line rounded-xl bg-gray-50 p-4 text-sm leading-6 text-slate-700">{{ $msg->content }}</div>
                         </div>
                         @endif
 
                         @if($msg->image_path)
                         <div>
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Foto</p>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Foto</p>
                             <a href="{{ asset('storage/' . $msg->image_path) }}" target="_blank" class="block">
                                 <img src="{{ asset('storage/' . $msg->image_path) }}" alt="{{ $msg->image_name ?? 'Foto pesan' }}" class="max-h-[460px] w-full rounded-xl border border-gray-100 object-contain bg-gray-50">
                             </a>
-                            <p class="mt-2 text-xs text-gray-500">{{ $msg->image_name }}</p>
+                            <p class="mt-2 text-xs text-slate-500">{{ $msg->image_name }}</p>
                         </div>
                         @endif
 
                         @if($msg->file_path)
                         <div>
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">File</p>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">File</p>
                             <a href="{{ asset('storage/' . $msg->file_path) }}" target="_blank" class="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">
                                 <span class="truncate">{{ $msg->file_name }}</span>
                                 <span class="ml-3 text-xs">Buka</span>
@@ -200,12 +200,12 @@
                 </div>
             </div>
             @empty
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <div class="empty-state text-center">
                 <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
-                <p class="text-gray-500 font-medium">Belum ada pesan</p>
-                <p class="text-gray-400 text-sm mt-1">Kirim pesan pertama ke karyawan</p>
+                <p class="text-slate-500 font-medium">Belum ada pesan</p>
+                <p class="text-slate-400 text-sm mt-1">Kirim pesan pertama ke karyawan</p>
             </div>
             @endforelse
 
@@ -251,7 +251,7 @@
     // Show file name
     document.getElementById('attachment')?.addEventListener('change', function() {
         const name = this.files[0]?.name || '';
-        document.getElementById('fileName').textContent = name ? '📎 ' + name : '';
+        document.getElementById('fileName').textContent = name ? 'ðŸ“Ž ' + name : '';
     });
 
     function previewImage(input) {

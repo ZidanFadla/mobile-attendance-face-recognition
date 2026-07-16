@@ -4,7 +4,7 @@
 
     <div class="grid grid-cols-1 gap-6">
         <div>
-            <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="current_password" class="block text-sm font-medium text-slate-700 mb-2">
                 Password Saat Ini <span class="text-red-500">*</span>
             </label>
             <input type="password" 
@@ -20,7 +20,7 @@
         </div>
 
         <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="password" class="block text-sm font-medium text-slate-700 mb-2">
                 Password Baru <span class="text-red-500">*</span>
             </label>
             <input type="password" 
@@ -36,7 +36,7 @@
         </div>
 
         <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="password_confirmation" class="block text-sm font-medium text-slate-700 mb-2">
                 Konfirmasi Password Baru <span class="text-red-500">*</span>
             </label>
             <input type="password" 
@@ -53,14 +53,14 @@
     </div>
 
     <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-slate-600">
             <span class="text-red-500">*</span> Field wajib diisi
         </div>
 
         <div class="flex items-center space-x-4">
             @if (session('status') === 'password-updated')
                 <p class="text-sm text-green-600 font-medium">
-                    ✓ Password berhasil diupdate
+                    âœ“ Password berhasil diupdate
                 </p>
             @endif
 

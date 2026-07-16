@@ -5,49 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') - Absensi OB</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        :root { --primary: #059669; }
-    </style>
 </head>
-<body class="bg-gray-50/50 antialiased">
-    <div class="min-h-screen flex">
-        {{-- Sidebar --}}
+<body class="min-h-screen antialiased" x-data="adminShell()">
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute left-[-10rem] top-[-12rem] h-96 w-96 rounded-full bg-blue-200/35 blur-3xl"></div>
+        <div class="absolute right-[-12rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-violet-200/30 blur-3xl"></div>
+    </div>
+
+    <div class="min-h-screen lg:flex">
         @include('layouts.partials.sidebar')
 
-        {{-- Main --}}
-        <div class="flex-1 lg:ml-72">
+        <div class="min-w-0 flex-1 lg:pl-80">
             @include('layouts.partials.header')
 
-            <main class="p-4 lg:p-8">
-                {{-- Flash --}}
-                @if(session('success'))
-                    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3.5 rounded-2xl flex items-center text-sm font-medium animate-fade-in" id="flash-msg">
-                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        {{ session('success') }}
-                    </div>
-                @endif
+            <main class="px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+                <div class="page-shell space-y-6">
+                    @if(session('success'))
+                        <div class="glass-panel flex items-center gap-3 rounded-3xl px-5 py-4 text-sm font-bold text-emerald-800 animate-fade-in-up" id="flash-msg">
+                            <span class="icon-tile !h-9 !w-9 text-emerald-600">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6 9 17l-5-5"/></svg>
+                            </span>
+                            <span class="font-semibold">{{ session('success') }}</span>
+                        </div>
+                    @endif
 
-                @if(session('error'))
-                    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-3.5 rounded-2xl flex items-center text-sm font-medium">
-                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-                        {{ session('error') }}
-                    </div>
-                @endif
+                    @if(session('error'))
+                        <div class="glass-panel flex items-center gap-3 rounded-3xl px-5 py-4 text-sm text-red-800 animate-fade-in-up">
+                            <span class="icon-tile !h-9 !w-9 text-red-600">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 6-12 12M6 6l12 12"/></svg>
+                            </span>
+                            <span class="font-semibold">{{ session('error') }}</span>
+                        </div>
+                    @endif
 
-                @if($errors->any())
-                    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-5 py-3.5 rounded-2xl text-sm">
-                        <ul class="list-disc list-inside space-y-1">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                    @if($errors->any())
+                        <div class="glass-panel rounded-3xl px-5 py-4 text-sm text-red-800 animate-fade-in-up">
+                            <p class="mb-2 font-extrabold">Periksa kembali input berikut:</p>
+                            <ul class="list-inside list-disc space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-                @yield('content')
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>
@@ -55,7 +61,7 @@
     <script>
         setTimeout(() => {
             const el = document.getElementById('flash-msg');
-            if (el) { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }
+            if (el) { el.style.transition = 'opacity 0.5s, transform 0.5s'; el.style.opacity = '0'; el.style.transform = 'translateY(-8px)'; setTimeout(() => el.remove(), 500); }
         }, 4000);
     </script>
     @stack('scripts')

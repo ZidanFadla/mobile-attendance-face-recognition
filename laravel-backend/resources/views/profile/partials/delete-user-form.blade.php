@@ -70,17 +70,17 @@
                                 </svg>
                             </div>
                             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900">
+                                <h3 class="text-base font-semibold leading-6 text-slate-900">
                                     Konfirmasi Hapus Akun
                                 </h3>
                                 <div class="mt-2">
-                                    <p class="text-sm text-gray-500">
+                                    <p class="text-sm text-slate-500">
                                         Apakah Anda yakin ingin menghapus akun Anda? Setelah akun dihapus, semua data akan dihapus secara permanen. Masukkan password Anda untuk mengkonfirmasi penghapusan akun.
                                     </p>
                                 </div>
 
                                 <div class="mt-4">
-                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <label for="password" class="block text-sm font-medium text-slate-700 mb-2">
                                         Password <span class="text-red-500">*</span>
                                     </label>
                                     <input type="password" 

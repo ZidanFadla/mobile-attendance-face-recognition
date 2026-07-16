@@ -1,95 +1,103 @@
-{{-- Sidebar Desktop --}}
-<aside class="hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 bg-gray-900 z-30">
-    {{-- Logo --}}
-    <div class="flex items-center gap-3 h-20 px-6">
-        <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path>
-            </svg>
+@php
+    $navItems = [
+        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'layout-dashboard'],
+        ['label' => 'Data Karyawan', 'route' => 'admin.employees.index', 'active' => 'admin.employees.*', 'icon' => 'users'],
+        ['label' => 'Data Absensi', 'route' => 'admin.attendance.index', 'active' => 'admin.attendance.*', 'icon' => 'calendar-check'],
+        ['label' => 'Rekap & Laporan', 'route' => 'admin.reports.index', 'active' => 'admin.reports.*', 'icon' => 'bar-chart'],
+        ['label' => 'Pesan', 'route' => 'admin.messages.index', 'active' => 'admin.messages.*', 'icon' => 'mail'],
+        ['label' => 'Persetujuan Cuti', 'route' => 'admin.leave-requests.index', 'active' => 'admin.leave-requests.*', 'icon' => 'calendar-days'],
+        ['label' => 'Persetujuan Kasbon', 'route' => 'admin.cash-advance-requests.index', 'active' => 'admin.cash-advance-requests.*', 'icon' => 'wallet'],
+    ];
+    $unreadCount = \App\Models\Message::where('is_read', false)->count();
+    $pendingLeaveCount = \App\Models\LeaveRequest::where('status', 'pending')->count();
+    $pendingCashAdvanceCount = \App\Models\CashAdvanceRequest::where('status', 'pending')->count();
+@endphp
+
+@once
+    @push('scripts')
+        <script>
+            window.iconPath = function(name) {
+                const icons = {
+                    'layout-dashboard': '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+                    'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+                    'calendar-check': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
+                    'bar-chart': '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+                    'mail': '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+                    'calendar-days': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/>',
+                    'wallet': '<path d="M19 7V4a1 1 0 0 0-1-1H5a3 3 0 0 0 0 6h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v2a1 1 0 0 1-1 1H5a3 3 0 0 1-3-3V6"/><path d="M18 14h.01"/>',
+                    'log-out': '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+                    'search': '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+                };
+                return icons[name] || '';
+            }
+        </script>
+    @endpush
+@endonce
+
+<div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false"></div>
+
+<aside
+    class="fixed inset-y-0 left-0 z-50 w-80 max-w-[88vw] -translate-x-full p-4 transition-transform duration-300 lg:translate-x-0"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+>
+    <div class="flex h-full flex-col clay-panel px-4 py-5" x-data="{ menuSearch: '' }">
+        <div class="mb-6 flex items-center justify-between px-2">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-gradient-to-br from-[#4F8EF7] to-[#7C5CFC] text-white shadow-lg shadow-blue-500/20">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M8.25 21h7.5A2.25 2.25 0 0 0 18 18.75V5.25A2.25 2.25 0 0 0 15.75 3h-7.5A2.25 2.25 0 0 0 6 5.25v13.5A2.25 2.25 0 0 0 8.25 21Z"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-slate-900">Absensi OB</h1>
+                    <p class="text-xs font-semibold text-slate-500">Attendance Suite</p>
+                </div>
+            </a>
+            <button class="rounded-2xl p-2 text-slate-500 hover:bg-slate-100 lg:hidden" @click="sidebarOpen = false" aria-label="Tutup menu">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <div>
-            <h1 class="text-white text-lg font-bold tracking-tight">Absensi OB</h1>
-            <p class="text-gray-500 text-xs">Admin Panel</p>
-        </div>
-    </div>
 
-    {{-- Search --}}
-    <div class="px-5 mb-4">
-        <div class="relative">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 text-sm bg-gray-800 border-0 rounded-xl text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-emerald-500">
-        </div>
-    </div>
-
-    {{-- Nav --}}
-    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-        <p class="px-3 pt-2 pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</p>
-
-        <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path></svg>
-            Dashboard
-        </a>
-
-        <a href="{{ route('admin.employees.index') }}" class="sidebar-link {{ request()->routeIs('admin.employees.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
-            Data Karyawan
-        </a>
-
-        <a href="{{ route('admin.attendance.index') }}" class="sidebar-link {{ request()->routeIs('admin.attendance.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
-            Data Absensi
-        </a>
-
-        <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd"></path></svg>
-            Rekap & Laporan
-        </a>
-
-        <a href="{{ route('admin.messages.index') }}" class="sidebar-link {{ request()->routeIs('admin.messages.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path></svg>
-            Pesan
-            @php $unreadCount = \App\Models\Message::where('is_read', false)->count(); @endphp
-            @if($unreadCount > 0)
-                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $unreadCount }}</span>
-            @endif
-        </a>
-
-        <a href="{{ route('admin.leave-requests.index') }}" class="sidebar-link {{ request()->routeIs('admin.leave-requests.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm8.707 7.707a1 1 0 00-1.414-1.414L9.5 12.086l-1.793-1.793a1 1 0 00-1.414 1.414l2.5 2.5a1 1 0 001.414 0l4.5-4.5z" clip-rule="evenodd"></path></svg>
-            Persetujuan Cuti
-            @php $pendingLeaveCount = \App\Models\LeaveRequest::where('status', 'pending')->count(); @endphp
-            @if($pendingLeaveCount > 0)
-                <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $pendingLeaveCount }}</span>
-            @endif
-        </a>
-
-        <a href="{{ route('admin.cash-advance-requests.index') }}" class="sidebar-link {{ request()->routeIs('admin.cash-advance-requests.*') ? 'sidebar-link-active' : '' }}">
-            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582z"></path><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.075.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.41 1.064 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.51-1.31C12.79 5.696 11.943 5.281 11 5.092V5z" clip-rule="evenodd"></path></svg>
-            Persetujuan Kasbon
-            @php $pendingCashAdvanceCount = \App\Models\CashAdvanceRequest::where('status', 'pending')->count(); @endphp
-            @if($pendingCashAdvanceCount > 0)
-                <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $pendingCashAdvanceCount }}</span>
-            @endif
-        </a>
-    </nav>
-
-    {{-- User --}}
-    <div class="px-5 py-5 border-t border-gray-800">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span class="text-white text-sm font-bold">{{ substr(auth()->user()->name ?? 'A', 0, 1) }}</span>
+        <div class="mb-5 px-2">
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-html="iconPath('search')"></svg>
+                <input type="text" placeholder="Cari menu..." class="input-field !py-2.5 !pl-11" aria-label="Cari menu" x-model="menuSearch">
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-white truncate">{{ auth()->user()->name ?? 'Admin' }}</p>
-                <p class="text-xs text-gray-500">Administrator</p>
+        </div>
+
+        <nav class="min-h-0 flex-1 space-y-1 overflow-y-auto px-1">
+            <p class="px-4 pb-2 text-[11px] font-extrabold uppercase tracking-[.18em] text-slate-400">Menu Utama</p>
+            @foreach($navItems as $item)
+                @php
+                    $badge = null;
+                    if ($item['route'] === 'admin.messages.index' && $unreadCount > 0) $badge = $unreadCount;
+                    if ($item['route'] === 'admin.leave-requests.index' && $pendingLeaveCount > 0) $badge = $pendingLeaveCount;
+                    if ($item['route'] === 'admin.cash-advance-requests.index' && $pendingCashAdvanceCount > 0) $badge = $pendingCashAdvanceCount;
+                @endphp
+                <a href="{{ route($item['route']) }}" class="sidebar-link {{ request()->routeIs($item['active']) ? 'sidebar-link-active' : '' }}" @click="sidebarOpen = false" x-show="!menuSearch || '{{ strtolower($item['label']) }}'.includes(menuSearch.toLowerCase())">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" x-html="iconPath('{{ $item['icon'] }}')"></svg>
+                    <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
+                    @if($badge)
+                        <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-700">{{ $badge }}</span>
+                    @endif
+                </a>
+            @endforeach
+        </nav>
+
+        <div class="mt-5 rounded-3xl bg-white/70 p-3 shadow-inner shadow-white">
+            <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4F8EF7] to-[#7C5CFC] text-sm font-extrabold text-white">
+                    {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-extrabold text-slate-900">{{ auth()->user()->name ?? 'Admin' }}</p>
+                    <p class="text-xs font-semibold text-slate-500">Administrator</p>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="rounded-2xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500" title="Logout" aria-label="Logout">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" x-html="iconPath('log-out')"></svg>
+                    </button>
+                </form>
             </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="p-2 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors" title="Logout">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                </button>
-            </form>
         </div>
     </div>
 </aside>

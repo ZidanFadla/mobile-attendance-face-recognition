@@ -20,27 +20,27 @@
 </div>
 
 <table class="w-full text-sm">
-    <thead><tr class="bg-gray-50/80">
-        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nama</th>
-        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tipe</th>
-        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Jam</th>
-        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+    <thead><tr class="bg-slate-50/80">
+        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nama</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipe</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Jam</th>
+        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
     </tr></thead>
-    <tbody class="divide-y divide-gray-50">
+    <tbody class="divide-y divide-slate-100/80">
         @forelse($attendances as $att)
             <tr class="hover:bg-gray-50/50">
-                <td class="px-4 py-3 font-medium text-gray-900">{{ $att->name }}</td>
-                <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-lg text-xs font-semibold {{ $att->type === 'Masuk' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700' }}">{{ $att->type }}</span></td>
-                <td class="px-4 py-3 font-mono text-gray-600">{{ \Carbon\Carbon::parse($att->timestamp)->format('H:i') }}</td>
+                <td class="px-4 py-3 font-medium text-slate-900">{{ $att->name }}</td>
+                <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold {{ $att->type === 'Masuk' ? 'bg-emerald-100 text-emerald-700 rounded-full' : 'bg-blue-100 text-blue-700 rounded-full' }}">{{ $att->type }}</span></td>
+                <td class="px-4 py-3 font-mono text-slate-600">{{ \Carbon\Carbon::parse($att->timestamp)->format('H:i') }}</td>
                 <td class="px-4 py-3">
                     @if($att->status === 'tepat_waktu') <span class="text-emerald-600 text-xs font-semibold">Tepat Waktu</span>
                     @elseif($att->status === 'telat') <span class="text-red-600 text-xs font-semibold">Terlambat</span>
-                    @else <span class="text-gray-400 text-xs">{{ $att->status ?? '-' }}</span>
+                    @else <span class="text-slate-400 text-xs">{{ $att->status ?? '-' }}</span>
                     @endif
                 </td>
             </tr>
         @empty
-            <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Tidak ada data</td></tr>
+            <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 text-sm">Tidak ada data</td></tr>
         @endforelse
     </tbody>
 </table>

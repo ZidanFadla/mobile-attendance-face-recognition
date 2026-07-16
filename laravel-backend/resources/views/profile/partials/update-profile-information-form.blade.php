@@ -4,7 +4,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="name" class="block text-sm font-medium text-slate-700 mb-2">
                 Nama Lengkap <span class="text-red-500">*</span>
             </label>
             <input type="text" 
@@ -21,7 +21,7 @@
         </div>
 
         <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-2">
                 Alamat Email <span class="text-red-500">*</span>
             </label>
             <input type="email" 
@@ -55,14 +55,14 @@
     </div>
 
     <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-slate-600">
             <span class="text-red-500">*</span> Field wajib diisi
         </div>
 
         <div class="flex items-center space-x-4">
             @if (session('status') === 'profile-updated')
                 <p class="text-sm text-green-600 font-medium">
-                    ✓ Profile berhasil diupdate
+                    âœ“ Profile berhasil diupdate
                 </p>
             @endif
 

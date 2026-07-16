@@ -5,145 +5,128 @@
 
 @section('content')
 <div class="space-y-8">
-    {{-- Welcome Banner --}}
-    <div class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-8 text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4"></div>
-        <div class="absolute bottom-0 right-32 w-32 h-32 bg-white/5 rounded-full translate-y-1/2"></div>
-        <div class="relative z-10">
-            <h2 class="text-2xl font-bold">Selamat Datang, {{ auth()->user()->name ?? 'Admin' }} 👋</h2>
-            <p class="text-emerald-100 mt-2 text-sm">Kelola absensi karyawan outsourcing dengan mudah dan efisien.</p>
-        </div>
-    </div>
-
-    {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {{-- Total Karyawan --}}
-        <div class="stat-card group">
-            <div class="flex items-start justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Total Karyawan</p>
-                    <p class="text-3xl font-extrabold text-gray-900 mt-2">{{ $totalKaryawan }}</p>
-                    <a href="{{ route('admin.employees.index') }}" class="text-xs text-emerald-600 font-medium mt-3 inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Lihat detail <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Hadir --}}
-        <div class="stat-card group">
-            <div class="flex items-start justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Hadir Hari Ini</p>
-                    <p class="text-3xl font-extrabold text-gray-900 mt-2">{{ $hadirHariIni }}</p>
-                    <a href="{{ route('admin.attendance.index') }}" class="text-xs text-emerald-600 font-medium mt-3 inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Lihat detail <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-                <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Terlambat --}}
-        <div class="stat-card group">
-            <div class="flex items-start justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Terlambat</p>
-                    <p class="text-3xl font-extrabold text-gray-900 mt-2">{{ $terlatHariIni }}</p>
-                    <span class="text-xs text-gray-400 mt-3 inline-block">Hari ini</span>
-                </div>
-                <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Lembur --}}
-        <div class="stat-card group">
-            <div class="flex items-start justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Lembur</p>
-                    <p class="text-3xl font-extrabold text-gray-900 mt-2">{{ $lemburHariIni }}</p>
-                    <span class="text-xs text-gray-400 mt-3 inline-block">Hari ini</span>
-                </div>
-                <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Absensi Terbaru --}}
-    <div class="table-container">
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+    <section class="clay-panel relative overflow-hidden p-7 sm:p-8">
+        <div class="absolute right-8 top-8 hidden h-36 w-36 rounded-full bg-blue-100/80 blur-2xl sm:block"></div>
+        <div class="relative grid gap-8 lg:grid-cols-[1.3fr_.7fr] lg:items-center">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Aktivitas Terbaru</h3>
-                <p class="text-xs text-gray-500 mt-0.5">10 absensi terakhir</p>
+                <span class="badge-info mb-4">Live attendance command center</span>
+                <h2 class="max-w-3xl text-3xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl">
+                    Selamat datang, {{ auth()->user()->name ?? 'Admin' }}.
+                </h2>
+                <p class="mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-500">
+                    Pantau kehadiran, status operasional, dan aktivitas karyawan outsourcing dari satu workspace admin yang ringan dan mudah dipindai.
+                </p>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="{{ route('admin.attendance.index') }}" class="btn-primary">Pantau Absensi</a>
+                    <a href="{{ route('admin.reports.index') }}" class="btn-secondary">Buka Laporan</a>
+                </div>
             </div>
-            <a href="{{ route('admin.attendance.index') }}" class="text-sm text-emerald-600 font-semibold hover:text-emerald-700">
-                Lihat Semua →
-            </a>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-3xl bg-white/70 p-4 shadow-inner shadow-white">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Hari ini</p>
+                    <p class="mt-2 text-2xl font-black text-slate-900">{{ now()->translatedFormat('d M') }}</p>
+                </div>
+                <div class="rounded-3xl bg-white/70 p-4 shadow-inner shadow-white">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Status</p>
+                    <p class="mt-2 text-2xl font-black text-[#22C55E]">Aktif</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="stat-card group">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-500">Total Karyawan</p>
+                    <p class="mt-3 text-4xl font-black tracking-tight text-slate-900">{{ $totalKaryawan }}</p>
+                    <p class="mt-2 text-xs font-semibold text-slate-400">Database aktif</p>
+                </div>
+                <div class="icon-tile text-[#4F8EF7]"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+            </div>
+            <a href="{{ route('admin.employees.index') }}" class="mt-5 inline-flex items-center gap-1 text-xs font-extrabold text-[#4F8EF7] opacity-0 transition group-hover:opacity-100">Lihat detail <span>-></span></a>
+        </div>
+
+        <div class="stat-card group">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-500">Hadir Hari Ini</p>
+                    <p class="mt-3 text-4xl font-black tracking-tight text-slate-900">{{ $hadirHariIni }}</p>
+                    <p class="mt-2 text-xs font-semibold text-emerald-600">Check-in tercatat</p>
+                </div>
+                <div class="icon-tile text-[#22C55E]"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6 9 17l-5-5"/></svg></div>
+            </div>
+            <a href="{{ route('admin.attendance.index') }}" class="mt-5 inline-flex items-center gap-1 text-xs font-extrabold text-[#4F8EF7] opacity-0 transition group-hover:opacity-100">Lihat detail <span>-></span></a>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-500">Terlambat</p>
+                    <p class="mt-3 text-4xl font-black tracking-tight text-slate-900">{{ $terlatHariIni }}</p>
+                    <p class="mt-2 text-xs font-semibold text-amber-600">Perlu ditinjau</p>
+                </div>
+                <div class="icon-tile text-[#F59E0B]"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-500">Lembur</p>
+                    <p class="mt-3 text-4xl font-black tracking-tight text-slate-900">{{ $lemburHariIni }}</p>
+                    <p class="mt-2 text-xs font-semibold text-violet-600">Hari ini</p>
+                </div>
+                <div class="icon-tile text-[#7C5CFC]"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="table-container">
+        <div class="flex items-center justify-between gap-4 px-6 py-5">
+            <div>
+                <h3 class="text-lg font-black tracking-tight text-slate-900">Aktivitas Terbaru</h3>
+                <p class="mt-1 text-sm font-medium text-slate-500">10 absensi terakhir</p>
+            </div>
+            <a href="{{ route('admin.attendance.index') }}" class="btn-secondary !px-4 !py-2.5">Lihat Semua</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-50/80">
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Karyawan</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipe</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Waktu</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">Karyawan</th>
+                        <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">Tipe</th>
+                        <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">Waktu</th>
+                        <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody class="divide-y divide-slate-100/80">
                     @forelse($recentAttendance as $att)
-                        <tr class="hover:bg-gray-50/50 transition-colors">
+                        <tr>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                        <span class="text-xs font-bold text-emerald-700">{{ substr($att->name, 0, 1) }}</span>
-                                    </div>
-                                    <span class="font-medium text-gray-900">{{ $att->name }}</span>
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-50 text-xs font-black text-[#4F8EF7]">{{ substr($att->name, 0, 1) }}</div>
+                                    <span class="font-bold text-slate-900">{{ $att->name }}</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold
-                                    {{ $att->type === 'Masuk' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700' }}">
-                                    {{ $att->type }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-500">{{ \Carbon\Carbon::parse($att->timestamp)->format('d M Y, H:i') }}</td>
+                            <td class="px-6 py-4"><span class="{{ $att->type === 'Masuk' ? 'badge-success' : 'badge-info' }}">{{ $att->type }}</span></td>
+                            <td class="px-6 py-4 font-medium text-slate-500">{{ \Carbon\Carbon::parse($att->timestamp)->format('d M Y, H:i') }}</td>
                             <td class="px-6 py-4">
                                 @if($att->status === 'tepat_waktu')
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
-                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Tepat Waktu
-                                    </span>
+                                    <span class="badge-success">Tepat Waktu</span>
                                 @elseif($att->status === 'telat')
-                                    <span class="inline-flex items-center gap-1 text-red-600 text-xs font-semibold">
-                                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Terlambat
-                                    </span>
+                                    <span class="badge-danger">Terlambat</span>
                                 @else
-                                    <span class="text-gray-400 text-xs">{{ $att->status ?? '-' }}</span>
+                                    <span class="badge-muted">{{ $att->status ?? '-' }}</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-12 text-center">
-                                <div class="text-gray-400">
-                                    <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                    <p class="text-sm">Belum ada data absensi</p>
-                                </div>
-                            </td>
-                        </tr>
+                        <tr><td colspan="4" class="px-6 py-12"><div class="empty-state !shadow-none">Belum ada data absensi</div></td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 </div>
 @endsection
