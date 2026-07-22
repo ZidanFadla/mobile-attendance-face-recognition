@@ -184,35 +184,16 @@ class _RegisterPageState extends State<RegisterPage>
 
   Widget _buildLogo() {
     return Center(
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppTheme.armyGreen, AppTheme.accentOrange],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppTheme.border),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.armyGreen.withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: Image.asset(
-            'assets/logo.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, e, st) => const Icon(
-              Icons.face_retouching_natural_rounded,
-              color: Colors.white,
-              size: 36,
-            ),
+      child: SizedBox(
+        width: 120,
+        height: 120,
+        child: Image.asset(
+          'assets/logo.png',
+          fit: BoxFit.contain,
+          errorBuilder: (_, e, st) => Icon(
+            Icons.face_retouching_natural_rounded,
+            color: AppTheme.armyGreenDark,
+            size: 36,
           ),
         ),
       ),
@@ -237,7 +218,7 @@ class _RegisterPageState extends State<RegisterPage>
           'Daftarkan akun untuk mulai absensi',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 15,
             color: AppTheme.textMuted,
             height: 1.4,
           ),
@@ -328,7 +309,7 @@ class _RegisterPageState extends State<RegisterPage>
       children: [
         Text(
           'Sudah punya akun? ',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+          style: TextStyle(color: AppTheme.textMuted, fontSize: 15),
         ),
         TextButton(
           onPressed: () => Navigator.pushReplacement(
@@ -345,7 +326,7 @@ class _RegisterPageState extends State<RegisterPage>
             style: TextStyle(
               color: AppTheme.armyGreen,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: 15,
             ),
           ),
         ),

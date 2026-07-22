@@ -144,34 +144,16 @@ class _LoginPageState extends State<LoginPage>
 
   Widget _buildLogo() {
     return Center(
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppTheme.gradientArmyGreen,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.armyGreen.withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Image.asset(
-            'assets/logo.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, e, st) => const Icon(
-              Icons.face_retouching_natural_rounded,
-              color: Colors.white,
-              size: 44,
-            ),
+      child: SizedBox(
+        width: 170,
+        height: 170,
+        child: Image.asset(
+          'assets/logo.png',
+          fit: BoxFit.contain,
+          errorBuilder: (_, e, st) => Icon(
+            Icons.face_retouching_natural_rounded,
+            color: AppTheme.armyGreenDark,
+            size: 44,
           ),
         ),
       ),
@@ -185,7 +167,7 @@ class _LoginPageState extends State<LoginPage>
           'Selamat Datang',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: FontWeight.w800,
             color: AppTheme.textDark,
             letterSpacing: -0.3,
@@ -196,7 +178,7 @@ class _LoginPageState extends State<LoginPage>
           'Absensi Karyawan Office Boy\nMarkas Besar Angkatan Darat',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 18,
             color: AppTheme.textMuted,
             height: 1.5,
           ),
@@ -206,7 +188,7 @@ class _LoginPageState extends State<LoginPage>
           width: 44,
           height: 3.5,
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: AppTheme.gradientArmyGreen),
+            color: AppTheme.armyGreenDark,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -271,7 +253,7 @@ class _LoginPageState extends State<LoginPage>
       children: [
         Text(
           'Belum punya akun? ',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+          style: TextStyle(color: AppTheme.textMuted, fontSize: 15),
         ),
         TextButton(
           onPressed: () => Navigator.pushReplacement(
@@ -288,7 +270,7 @@ class _LoginPageState extends State<LoginPage>
             style: TextStyle(
               color: AppTheme.armyGreen,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: 15,
             ),
           ),
         ),

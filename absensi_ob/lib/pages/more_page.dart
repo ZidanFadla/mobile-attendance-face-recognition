@@ -35,7 +35,7 @@ class MorePage extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          'More',
+          'Menu Lainnya',
           style: TextStyle(
             color: AppTheme.textDark,
             fontWeight: FontWeight.w800,

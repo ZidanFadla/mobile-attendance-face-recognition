@@ -121,9 +121,9 @@ class _ClayButtonState extends State<ClayButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onPressed != null && !widget.isLoading;
-    final colors = widget.destructive
-        ? AppTheme.gradientError
-        : AppTheme.gradientArmyGreen;
+    final backgroundColor = widget.destructive
+        ? AppTheme.error
+        : AppTheme.armyGreenDark;
 
     return GestureDetector(
       onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
@@ -137,8 +137,7 @@ class _ClayButtonState extends State<ClayButton> {
           duration: AppTheme.normalTransition,
           height: 56,
           decoration: BoxDecoration(
-            gradient: enabled ? LinearGradient(colors: colors) : null,
-            color: enabled ? null : AppTheme.surfaceAlt,
+            color: enabled ? backgroundColor : AppTheme.surfaceAlt,
             borderRadius: BorderRadius.circular(AppTheme.radiusLg),
             boxShadow: enabled ? [AppTheme.buttonShadow] : [],
           ),

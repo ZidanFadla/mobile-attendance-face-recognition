@@ -61,7 +61,7 @@ class _MessagesPageState extends State<MessagesPage> {
         automaticallyImplyLeading: false,
         scrolledUnderElevation: 1,
         title: Text(
-          'Pesan dari Admin',
+          'Pesan',
           style: TextStyle(
             color: AppTheme.textDark,
             fontWeight: FontWeight.w700,
