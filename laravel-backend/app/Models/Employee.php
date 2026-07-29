@@ -42,4 +42,9 @@ class Employee extends Authenticatable
     {
         return $this->hasMany(CashAdvanceRequest::class);
     }
+
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(EmployeeDeviceToken::class);
+    }
 }

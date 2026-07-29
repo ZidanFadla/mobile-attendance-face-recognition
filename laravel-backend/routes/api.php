@@ -6,6 +6,7 @@ use App\Http\Controllers\FaceRecognitionController;
 use App\Http\Controllers\AttendanceApiController;
 use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\MessageApiController;
+use App\Http\Controllers\NotificationTokenController;
 use App\Http\Controllers\RequestApiController;
 
 
@@ -25,6 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [EmployeeAuthController::class, 'updateProfile']);
     Route::post('/profile/photo', [EmployeeAuthController::class, 'uploadProfilePhoto']);
     Route::put('/profile/password', [EmployeeAuthController::class, 'changePassword']);
+    Route::post('/notification-token', [NotificationTokenController::class, 'store']);
+    Route::delete('/notification-token', [NotificationTokenController::class, 'destroy']);
 
     // Messages (polling)
     Route::get('/messages', [MessageApiController::class, 'index']);

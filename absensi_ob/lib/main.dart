@@ -2,10 +2,12 @@ import 'package:absensi_ob/core/app_theme.dart';
 import 'package:absensi_ob/pages/login_page.dart';
 import 'package:absensi_ob/pages/splash_page.dart';
 import 'package:flutter/material.dart';
+import 'services/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppTheme.init();
+  await PushNotificationService.ensureInitialized();
   runApp(const MyApp());
 }
 

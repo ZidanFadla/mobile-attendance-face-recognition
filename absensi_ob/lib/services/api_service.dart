@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
+import 'push_notification_service.dart';
 
 /// ApiService bertanggung jawab penuh atas semua komunikasi HTTP ke Laravel.
 /// Tidak ada logic bisnis di sini — hanya kirim & terima data.
@@ -50,6 +51,7 @@ class ApiService {
     final token = data['token'];
     if (data['success'] == true && token is String) {
       await TokenStorage.saveToken(token);
+      unawaited(PushNotificationService.syncTokenToServer());
     }
     return data;
   }
@@ -76,6 +78,7 @@ class ApiService {
     final token = data['token'];
     if (data['success'] == true && token is String) {
       await TokenStorage.saveToken(token);
+      unawaited(PushNotificationService.syncTokenToServer());
     }
     return data;
   }
@@ -157,7 +160,10 @@ class ApiService {
         .timeout(_timeout);
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Gagal menyimpan data absensi: ${response.body}');
+      throw ApiException(
+        response.statusCode,
+        'Gagal menyimpan data absensi: ${response.body}',
+      );
     }
   }
 
@@ -327,10 +333,13 @@ class ApiService {
 
     final message = data['message'];
     if (message is String && message.isNotEmpty) {
-      throw Exception(message);
+      throw ApiException(response.statusCode, message);
     }
 
-    throw Exception('Request gagal (${response.statusCode}).');
+    throw ApiException(
+      response.statusCode,
+      'Request gagal (${response.statusCode}).',
+    );
   }
 
   static List<Map<String, dynamic>> _decodePaginatedList(
@@ -346,4 +355,14 @@ class ApiService {
 
     return [];
   }
+}
+
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+
+  ApiException(this.statusCode, this.message);
+
+  @override
+  String toString() => 'ApiException ($statusCode): $message';
 }

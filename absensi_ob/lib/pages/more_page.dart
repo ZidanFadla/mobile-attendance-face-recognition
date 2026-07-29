@@ -8,6 +8,7 @@ import 'user_guide_page.dart';
 import '../core/app_theme.dart';
 import '../services/session_manager.dart';
 import '../services/token_storage.dart';
+import '../services/push_notification_service.dart';
 
 /// More tab — stateless display. Data flows from [MainShell].
 class MorePage extends StatelessWidget {
@@ -156,6 +157,7 @@ class MorePage extends StatelessWidget {
             title: 'Logout',
             subtitle: 'Keluar dari akun karyawan di perangkat ini.',
             onTap: () async {
+              await PushNotificationService.unregisterToken();
               await TokenStorage.clearToken();
               SessionManager.clear();
               if (!context.mounted) return;

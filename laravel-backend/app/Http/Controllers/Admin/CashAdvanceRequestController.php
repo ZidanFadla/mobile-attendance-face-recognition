@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CashAdvanceRequest;
 use App\Models\Message;
+use App\Services\Notifications\FirebaseCloudMessagingService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -132,11 +133,13 @@ class CashAdvanceRequestController extends Controller
         $note = $cashAdvanceRequest->admin_note ? "\nCatatan admin: {$cashAdvanceRequest->admin_note}" : '';
         $outstanding = number_format($cashAdvanceRequest->outstanding_amount, 0, ',', '.');
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => auth()->id(),
             'employee_id' => $cashAdvanceRequest->employee_id,
             'type' => 'text',
             'content' => "Status kasbon Rp " . number_format($cashAdvanceRequest->amount, 0, ',', '.') . " telah {$statusLabel}. Sisa kasbon: Rp {$outstanding}.{$note}",
         ]);
+
+        app(FirebaseCloudMessagingService::class)->sendMessageNotification($message);
     }
 }

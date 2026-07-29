@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use App\Models\Message;
+use App\Services\Notifications\FirebaseCloudMessagingService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -63,11 +64,13 @@ class LeaveRequestController extends Controller
         $statusLabel = $leaveRequest->status === LeaveRequest::STATUS_APPROVED ? 'disetujui' : 'ditolak';
         $note = $leaveRequest->admin_note ? "\nCatatan admin: {$leaveRequest->admin_note}" : '';
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => auth()->id(),
             'employee_id' => $leaveRequest->employee_id,
             'type' => 'text',
             'content' => "Pengajuan cuti {$leaveRequest->leave_type} tanggal {$leaveRequest->start_date->format('d M Y')} - {$leaveRequest->end_date->format('d M Y')} telah {$statusLabel}.{$note}",
         ]);
+
+        app(FirebaseCloudMessagingService::class)->sendMessageNotification($message);
     }
 }
