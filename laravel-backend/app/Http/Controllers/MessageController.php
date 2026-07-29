@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Message;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Services\Notifications\FirebaseCloudMessagingService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
@@ -29,11 +31,10 @@ class MessageController extends Controller
             'image'       => 'nullable|image|max:10240',
         ]);
 
-        // Tentukan type otomatis
+        // Pakai nilai yang valid di constraint database: text, image, atau file.
+        // Jika ada gambar + file, type tetap image; file tetap disimpan lewat file_path.
         $type = 'text';
-        if ($request->hasFile('image') && $request->hasFile('attachment')) {
-            $type = 'mixed';
-        } elseif ($request->hasFile('image')) {
+        if ($request->hasFile('image')) {
             $type = 'image';
         } elseif ($request->hasFile('attachment')) {
             $type = 'file';
@@ -60,21 +61,38 @@ class MessageController extends Controller
             $data['image_name'] = $image->getClientOriginalName();
         }
 
-        Message::create($data);
+        $message = Message::create($data);
+
+        app(FirebaseCloudMessagingService::class)->sendMessageNotification($message);
 
         return redirect()->route('admin.messages.index')
             ->with('success', 'Pesan berhasil dikirim!');
     }
-    public function destroy(Message $message)
+    public function destroy(int $id)
     {
-        if ($message->file_path) {
-            Storage::disk('public')->delete($message->file_path);
-        }
-        if ($message->image_path) {
-            Storage::disk('public')->delete($message->image_path);
-        }
-        $message->delete();
+        $message = Message::find($id);
 
-        return redirect()->back()->with('success', 'Pesan berhasil dihapus.');
+        if (!$message) {
+            return redirect()->route('admin.messages.index')
+                ->with('success', 'Pesan sudah tidak tersedia.');
+        }
+
+        DB::transaction(function () use ($message) {
+            DB::table('message_reads')->where('message_id', $message->id)->delete();
+
+            $filePath = $message->file_path;
+            $imagePath = $message->image_path;
+
+            $message->delete();
+
+            foreach ([$filePath, $imagePath] as $path) {
+                if ($path) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+        });
+
+        return redirect()->route('admin.messages.index')
+            ->with('success', 'Pesan berhasil dihapus.');
     }
 }

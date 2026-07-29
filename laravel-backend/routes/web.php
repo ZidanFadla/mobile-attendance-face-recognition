@@ -52,7 +52,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // 5. Pesan ke Karyawan
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
-    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
 
     // 6. Persetujuan cuti dan kasbon
     Route::get('/leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
