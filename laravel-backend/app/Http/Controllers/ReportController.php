@@ -13,13 +13,13 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $reportType = $request->get('report_type');
+        $reportType = $request->input('report_type');
         $tab = $reportType ? match ($reportType) {
             'daily' => 'harian',
             'monthly' => 'bulanan',
             'yearly' => 'tahunan',
-            default => $request->get('tab', 'harian'),
-        } : $request->get('tab', 'harian');
+            default => $request->input('tab', 'harian'),
+        } : $request->input('tab', 'harian');
 
         $data = match ($tab) {
             'bulanan' => $this->rekapBulanan($request),
@@ -43,11 +43,11 @@ class ReportController extends Controller
 
     private function rekapHarian(Request $request): array
     {
-        $date = $request->get('date', today()->format('Y-m-d'));
+        $date = $request->input('date', today()->format('Y-m-d'));
         $dayStart = Carbon::parse($date)->startOfDay();
         $dayEnd = $dayStart->copy()->endOfDay();
         $employeeId = $request->integer('employee_id') ?: null;
-        $status = $request->get('status');
+        $status = $request->input('status');
 
         $attendances = Attendance::with('employee:id,name,jabatan')
             ->whereBetween('timestamp', [$dayStart, $dayEnd])
@@ -67,7 +67,7 @@ class ReportController extends Controller
 
     private function rekapBulanan(Request $request): array
     {
-        $month = $request->get('month', now()->format('Y-m'));
+        $month = $request->input('month', now()->format('Y-m'));
         $start = Carbon::parse($month)->startOfMonth();
         $end = Carbon::parse($month)->endOfMonth();
         $employeeId = $request->integer('employee_id') ?: null;
@@ -93,7 +93,7 @@ class ReportController extends Controller
 
     private function rekapTahunan(Request $request): array
     {
-        $year = (int) $request->get('year', now()->year);
+        $year = (int) $request->input('year', now()->year);
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = $start->copy()->endOfYear();
 
@@ -130,7 +130,7 @@ class ReportController extends Controller
 
     private function rekapLembur(Request $request): array
     {
-        $month = $request->get('month', now()->format('Y-m'));
+        $month = $request->input('month', now()->format('Y-m'));
         $start = Carbon::parse($month)->startOfMonth();
         $end = Carbon::parse($month)->endOfMonth();
 

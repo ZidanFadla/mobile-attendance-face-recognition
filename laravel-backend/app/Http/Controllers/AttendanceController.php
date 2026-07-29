@@ -13,8 +13,8 @@ class AttendanceController extends Controller
      */
     public function index(Request $request)
     {
-        $date = $request->get('date', today()->format('Y-m-d'));
-        $search = $request->get('search');
+        $date = $request->input('date', today()->format('Y-m-d'));
+        $search = $request->input('search');
         $dayStart = Carbon::parse($date)->startOfDay();
         $dayEnd = $dayStart->copy()->endOfDay();
 
@@ -84,7 +84,7 @@ class AttendanceController extends Controller
     /**
      * Update status absensi (edit status / tandai lembur)
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'status'     => 'nullable|string|in:tepat_waktu,telat,normal,pulang_awal,lembur',

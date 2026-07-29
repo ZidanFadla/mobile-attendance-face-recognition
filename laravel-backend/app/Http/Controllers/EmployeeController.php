@@ -18,7 +18,7 @@ class EmployeeController extends Controller
         $query = Employee::query();
 
         // Search sederhana
-        if ($search = $request->get('search')) {
+        if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
@@ -70,7 +70,7 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee, Request $request)
     {
-        $month = $request->get('month', now()->format('Y-m'));
+        $month = $request->input('month', now()->format('Y-m'));
         $startDate = Carbon::parse($month)->startOfMonth();
         $endDate = Carbon::parse($month)->endOfMonth();
 
