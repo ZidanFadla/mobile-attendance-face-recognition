@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -67,40 +66,6 @@ class FaceRecognitionService {
         : await _decodeCropAndResizeNative(imagePath, faceRect);
 
     return _runInferenceFromByteData(byteData);
-  }
-
-  /// Extract embedding from an already-decoded [img.Image].
-  /// Useful when the face is already cropped in memory.
-  static Future<List<double>> extractEmbeddingFromImage(
-    img.Image faceImage,
-  ) async {
-    if (_interpreter == null) {
-      throw Exception('Model belum dimuat. Panggil init() terlebih dahulu.');
-    }
-    return _runInference(faceImage);
-  }
-
-  /// Core inference: resize → normalize → run model → L2 normalize output.
-  static List<double> _runInference(img.Image faceImage) {
-    // Resize to 112×112
-    final resized = img.copyResize(
-      faceImage,
-      width: AppConstants.faceInputSize,
-      height: AppConstants.faceInputSize,
-      interpolation: img.Interpolation.linear,
-    );
-
-    // Build input tensor [1, 112, 112, 3] with pixel values in [-1, 1]
-    final input = _imageToInputTensor(resized);
-
-    // Allocate output tensor [1, 192]
-    final output = List.filled(AppConstants.faceEmbeddingSize, 0.0)
-        .reshape([1, AppConstants.faceEmbeddingSize]);
-
-    _interpreter!.run(input, output);
-
-    // L2-normalize the raw embedding
-    return _l2Normalize(List<double>.from(output[0] as List));
   }
 
   /// Core inference from native RGBA bytes that are already 112x112.
@@ -301,22 +266,6 @@ class FaceRecognitionService {
             (r - 127.5) / 127.5,
             (g - 127.5) / 127.5,
             (b - 127.5) / 127.5,
-          ];
-        });
-      });
-    });
-  }
-  /// Build a [1, 112, 112, 3] input tensor from an [img.Image].
-  /// Pixel values are normalized from [0, 255] to [-1, 1].
-  static List<List<List<List<double>>>> _imageToInputTensor(img.Image image) {
-    return List.generate(1, (_) {
-      return List.generate(AppConstants.faceInputSize, (y) {
-        return List.generate(AppConstants.faceInputSize, (x) {
-          final pixel = image.getPixel(x, y);
-          return [
-            (pixel.r.toDouble() - 127.5) / 127.5,
-            (pixel.g.toDouble() - 127.5) / 127.5,
-            (pixel.b.toDouble() - 127.5) / 127.5,
           ];
         });
       });

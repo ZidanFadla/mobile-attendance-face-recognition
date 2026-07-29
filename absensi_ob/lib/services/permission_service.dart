@@ -56,20 +56,4 @@ class PermissionService {
     }
   }
 
-  /// Check apakah semua permissions sudah granted.
-  static Future<bool> hasAllPermissions() async {
-    try {
-      final locationPermission = await Geolocator.checkPermission();
-      final hasLocation =
-          locationPermission == LocationPermission.whileInUse ||
-          locationPermission == LocationPermission.always;
-
-      final cameras = await availableCameras();
-      final hasCamera = cameras.isNotEmpty;
-
-      return hasLocation && hasCamera;
-    } catch (e) {
-      return false;
-    }
-  }
 }

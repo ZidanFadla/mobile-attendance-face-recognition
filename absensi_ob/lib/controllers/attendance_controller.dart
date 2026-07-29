@@ -168,12 +168,7 @@ class AttendanceController extends ChangeNotifier {
           message: 'Kamu sudah absen masuk hari ini.',
         );
       }
-      if (type == 'Masuk' && !_isWithinClockInWindow(DateTime.now())) {
-        return const AttendanceResult(
-          success: false,
-          message: 'Absen masuk hanya dibuka pukul 06:00 sampai 08:00.',
-        );
-      }
+
       if (type == 'Pulang') {
         if (!hasClockInToday) {
           return const AttendanceResult(
@@ -307,14 +302,6 @@ class AttendanceController extends ChangeNotifier {
 
   // ── Register Face ──
 
-  bool _isWithinClockInWindow(DateTime time) {
-    final currentMinutes = time.hour * 60 + time.minute;
-    final startMinutes =
-        AppConstants.clockInStartHour * 60 + AppConstants.clockInStartMinute;
-    final endMinutes =
-        AppConstants.clockInEndHour * 60 + AppConstants.clockInEndMinute;
-    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-  }
 
   Future<AttendanceResult> registerFace(
     List<File> photos,

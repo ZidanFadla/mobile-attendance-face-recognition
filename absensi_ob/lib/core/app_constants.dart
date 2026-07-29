@@ -16,7 +16,7 @@ class AppConstants {
   static const int clockInStartHour = 6;
   static const int clockInStartMinute = 0;
   static const int clockInEndHour = 8;
-  static const int clockInEndMinute = 0;
+  static const int clockInEndMinute = 10;
 
   static const List<String> faceRegisterInstructions = [
     'Foto 1/3 - Hadap depan, tatap kamera',

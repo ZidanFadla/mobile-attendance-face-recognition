@@ -51,8 +51,15 @@ class OfflineAttendanceQueue {
       try {
         await ApiService.sendAttendance(record);
         synced++;
+      } on ApiException catch (e) {
+        // Jika bad request / conflict (400-499), buang dari antrian agar tidak stuck
+        if (e.statusCode >= 400 && e.statusCode < 500) {
+          continue;
+        }
+        // Selain itu (misal server error 500), simpan untuk coba lagi
+        remaining.add(record);
       } catch (_) {
-        // Keep in queue for next attempt
+        // Kesalahan koneksi / timeout, simpan untuk coba lagi
         remaining.add(record);
       }
     }
