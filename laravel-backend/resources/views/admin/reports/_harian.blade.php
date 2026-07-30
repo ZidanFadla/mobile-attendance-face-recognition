@@ -38,3 +38,7 @@
         @endforelse
     </tbody>
 </table>
+
+@if(method_exists($attendances, 'links') && $attendances->hasPages())
+    <div class="mt-4">{{ $attendances->links() }}</div>
+@endif

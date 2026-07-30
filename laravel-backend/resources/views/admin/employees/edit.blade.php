@@ -6,7 +6,7 @@
 @section('content')
 <div class="max-w-2xl">
     <div class="clay-panel p-8">
-        <form method="POST" action="{{ route('admin.employees.update', $employee) }}">
+        <form method="POST" action="{{ route('admin.employees.update', $employee) }}" autocomplete="off">
             @csrf @method('PUT')
             <div class="space-y-5">
                 <div>
@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-semibold text-slate-700 mb-1.5">Password <span class="text-slate-400 font-normal">(kosongkan jika tidak diubah)</span></label>
-                    <input type="password" name="password" id="password" class="input-field" placeholder="Minimal 6 karakter">
+                    <input type="password" name="password" id="password" class="input-field" placeholder="Minimal 6 karakter" autocomplete="new-password">
                     @error('password') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
                 </div>
             </div>

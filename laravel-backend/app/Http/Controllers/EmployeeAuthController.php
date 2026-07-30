@@ -12,6 +12,12 @@ class EmployeeAuthController extends Controller
     // Register karyawan baru
     public function register(Request $request)
     {
+        $request->merge([
+            'name' => trim((string) $request->input('name', '')),
+            'phone' => trim((string) $request->input('phone', '')),
+            'username' => strtolower(trim((string) $request->input('username', ''))),
+        ]);
+
         $request->validate([
             'name' => 'required|string',
             'phone' => 'required|string',
@@ -29,9 +35,9 @@ class EmployeeAuthController extends Controller
         }
 
         $employee = Employee::create([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'username' => $request->username,
+            'name' => trim($request->name),
+            'phone' => trim($request->phone),
+            'username' => strtolower(trim($request->username)),
             'password' => Hash::make($request->password),
         ]);
         $token = $employee->createToken('mobile')->plainTextToken;
@@ -47,12 +53,17 @@ class EmployeeAuthController extends Controller
     // Login karyawan
     public function login(Request $request)
     {
+        $request->merge([
+            'username' => strtolower(trim((string) $request->input('username', ''))),
+        ]);
+
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $employee = Employee::where('username', $request->username)->first();
+        $username = strtolower(trim($request->username));
+        $employee = Employee::where('username', $username)->first();
 
         if (!$employee || !Hash::check($request->password, $employee->password)) {
             return response()->json([

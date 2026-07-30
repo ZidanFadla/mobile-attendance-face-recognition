@@ -33,17 +33,18 @@ class SessionManager {
 
   /// Muat riwayat absensi dari database API lalu simpan ke memori lokal.
   /// Dipanggil sekali saat login / MainShell dimuat.
-  static Future<void> loadFromApi(String name) async {
+  static Future<bool> loadFromApi(String name) async {
     try {
       final list = await ApiService.fetchAttendanceHistory();
       final records = <AttendanceRecord>[];
 
       for (final item in list) {
+        final timestamp = DateTime.parse(item['timestamp'] as String);
         records.add(
           AttendanceRecord(
             name: item['name']?.toString() ?? name,
             phoneNumber: item['phone']?.toString() ?? '',
-            timestamp: DateTime.parse(item['timestamp'] as String),
+            timestamp: timestamp.isUtc ? timestamp.toLocal() : timestamp,
             type: item['type']?.toString() ?? '',
             latitude: _toDouble(item['latitude']),
             longitude: _toDouble(item['longitude']),
@@ -53,8 +54,10 @@ class SessionManager {
       }
 
       _attendanceData[name] = records;
+      return true;
     } catch (_) {
       // Jika gagal fetch, biarkan data tetap kosong / data sesi sebelumnya
+      return false;
     }
   }
 

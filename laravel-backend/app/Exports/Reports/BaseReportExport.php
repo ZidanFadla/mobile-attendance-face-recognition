@@ -4,7 +4,6 @@ namespace App\Exports\Reports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-abstract class BaseReportExport implements FromCollection, WithHeadings, WithStyles, WithEvents, ShouldAutoSize, WithCustomStartCell, WithTitle
+abstract class BaseReportExport implements FromCollection, WithHeadings, WithStyles, WithEvents, WithCustomStartCell, WithTitle
 {
     public function __construct(protected array $report)
     {
@@ -88,13 +87,6 @@ abstract class BaseReportExport implements FromCollection, WithHeadings, WithSty
                 $sheet->freezePane('A10');
                 $sheet->setAutoFilter("A{$headingRow}:{$lastColumn}{$headingRow}");
 
-                for ($row = $firstDataRow; $row <= $lastDataRow; $row++) {
-                    if (($row - $firstDataRow) % 2 === 1) {
-                        $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->getFill()
-                            ->setFillType(Fill::FILL_SOLID)
-                            ->getStartColor()->setRGB('F8FAFC');
-                    }
-                }
 
                 $currencyColumns = $this->currencyColumns();
                 foreach ($currencyColumns as $column) {

@@ -17,13 +17,17 @@
             <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 text-sm">Tidak ada data lembur</td></tr>
         @endforelse
     </tbody>
-    @if($lemburData->count() > 0)
+    @if(($totalHariLembur ?? $lemburData->count()) > 0)
         <tfoot class="bg-slate-50/80 font-bold">
             <tr>
                 <td colspan="2" class="px-4 py-3 text-slate-900">Total</td>
-                <td class="px-4 py-3 text-center text-purple-700">{{ $lemburData->sum('total_hari_lembur') }} hari</td>
-                <td class="px-4 py-3 text-right text-slate-900">Rp {{ number_format($lemburData->sum('total_fee'), 0, ',', '.') }}</td>
+                <td class="px-4 py-3 text-center text-purple-700">{{ $totalHariLembur ?? $lemburData->sum('total_hari_lembur') }} hari</td>
+                <td class="px-4 py-3 text-right text-slate-900">Rp {{ number_format($totalFeeLembur ?? $lemburData->sum('total_fee'), 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     @endif
 </table>
+
+@if(method_exists($lemburData, 'links') && $lemburData->hasPages())
+    <div class="mt-4">{{ $lemburData->links() }}</div>
+@endif

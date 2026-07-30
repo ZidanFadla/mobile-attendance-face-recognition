@@ -174,32 +174,37 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildMainAttendanceCard() {
+    final statusReady = _ctrl.isAttendanceReady;
     final hasClockedIn = _ctrl.isClockedIn;
     final hasClockedOut = _ctrl.clockOutTime != '--:--';
-    final showClockOut = hasClockedIn && !hasClockedOut;
-    final allDone = hasClockedIn && hasClockedOut;
+    final showClockOut = statusReady && hasClockedIn && !hasClockedOut;
+    final allDone = statusReady && hasClockedIn && hasClockedOut;
 
-    final label = allDone
+    final label = !statusReady
+        ? 'MEMUAT'
+        : allDone
         ? 'SELESAI'
         : showClockOut
         ? 'CLOCK OUT'
         : 'CLOCK IN';
-    final VoidCallback? onTap = allDone
+    final VoidCallback? onTap = !statusReady || allDone
         ? null
         : showClockOut
         ? widget.onClockOut
         : widget.onClockIn;
-    final btnColor = allDone
+    final btnColor = !statusReady || allDone
         ? AppTheme.textMuted
         : showClockOut
         ? AppTheme.btnRed
         : AppTheme.btnGreen;
-    final btnColorDark = allDone
+    final btnColorDark = !statusReady || allDone
         ? AppTheme.textLight
         : showClockOut
         ? const Color(0xFFB63A48)
         : AppTheme.btnGreenDark;
-    final btnIcon = allDone
+    final btnIcon = !statusReady
+        ? Icons.sync_rounded
+        : allDone
         ? Icons.check_circle_outline_rounded
         : Icons.face_retouching_natural_rounded;
 
@@ -269,12 +274,14 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               const SizedBox(width: 10),
               _StatusBadge(
-                label: allDone
+                label: !statusReady
+                    ? 'Memuat status'
+                    : allDone
                     ? 'Sesi selesai'
                     : showClockOut
                     ? 'Sedang bekerja'
                     : 'Belum absen',
-                color: allDone
+                color: !statusReady || allDone
                     ? AppTheme.textMuted
                     : showClockOut
                     ? AppTheme.warning
@@ -299,7 +306,9 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   return AnimatedBuilder(
                     animation: _pulseController,
                     builder: (context, child) {
-                      final scale = allDone ? 1.0 : _pulseAnimation.value;
+                      final scale = !statusReady || allDone
+                          ? 1.0
+                          : _pulseAnimation.value;
                       return Transform.scale(
                         scale: scale,
                         child: GestureDetector(

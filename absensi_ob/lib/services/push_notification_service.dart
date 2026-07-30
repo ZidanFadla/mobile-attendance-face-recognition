@@ -50,7 +50,8 @@ class PushNotificationService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     await _requestPermission();
@@ -75,7 +76,7 @@ class PushNotificationService {
     if (fcmToken == null || fcmToken.isEmpty) return;
 
     try {
-      await http
+      final response = await http
           .post(
             Uri.parse('${AppConstants.baseUrl}/notification-token'),
             headers: {
@@ -89,6 +90,11 @@ class PushNotificationService {
             }),
           )
           .timeout(const Duration(seconds: 15));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint(
+          'Gagal sync FCM token: ${response.statusCode} ${response.body}',
+        );
+      }
     } catch (e) {
       debugPrint('Gagal sync FCM token: $e');
     }
@@ -132,7 +138,8 @@ class PushNotificationService {
     if (Platform.isAndroid) {
       await _localNotifications
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.requestNotificationsPermission();
     }
   }

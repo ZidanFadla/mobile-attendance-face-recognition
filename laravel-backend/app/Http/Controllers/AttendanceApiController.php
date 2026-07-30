@@ -54,10 +54,10 @@ class AttendanceApiController extends Controller
         }
 
         if ($type === 'Masuk') {
-            $batasTepatWaktu = Carbon::parse($timestamp->format('Y-m-d') . ' ' . config('attendance.jam_masuk'))
-                ->addMinutes(config('attendance.toleransi_menit'));
+            $mulaiTepatWaktu = Carbon::parse($timestamp->format('Y-m-d') . ' ' . config('attendance.jam_masuk_mulai'));
+            $selesaiTepatWaktu = Carbon::parse($timestamp->format('Y-m-d') . ' ' . config('attendance.jam_masuk_selesai'));
 
-            $status = $timestamp->lte($batasTepatWaktu) ? 'tepat_waktu' : 'telat';
+            $status = $timestamp->betweenIncluded($mulaiTepatWaktu, $selesaiTepatWaktu) ? 'tepat_waktu' : 'telat';
 
         } elseif ($type === 'Pulang') {
             $batasPulang = Carbon::parse($timestamp->format('Y-m-d') . ' ' . config('attendance.jam_pulang'));

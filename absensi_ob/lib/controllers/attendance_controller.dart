@@ -37,6 +37,8 @@ class AttendanceController extends ChangeNotifier {
   bool isClockedIn = false;
   bool isFaceRegistered = false;
   bool isCheckingFace = true;
+  bool isAttendanceReady = false;
+  bool attendanceSyncFailed = false;
   bool isLoading = false;
 
   String clockInTime = '--:--';
@@ -59,7 +61,10 @@ class AttendanceController extends ChangeNotifier {
   /// Called once in MainShell.initState().
   /// Returns true if the employee hasn't registered their face yet.
   Future<bool> init() async {
-    _loadTodayStatus();
+    isAttendanceReady = false;
+    notifyListeners();
+
+    await syncTodayStatusFromServer();
 
     // Sync offline queue if any
     _trySyncOfflineQueue();
@@ -68,6 +73,14 @@ class AttendanceController extends ChangeNotifier {
   }
 
   void refreshTodayStatus() => _loadTodayStatus();
+
+  Future<bool> syncTodayStatusFromServer() async {
+    final success = await SessionManager.loadFromApi(name);
+    attendanceSyncFailed = !success;
+    isAttendanceReady = true;
+    _loadTodayStatus();
+    return success;
+  }
 
   void _loadTodayStatus() {
     final masukRecord = SessionManager.getTodayRecord(name, 'Masuk');
@@ -106,7 +119,7 @@ class AttendanceController extends ChangeNotifier {
 
       // If registered, fetch & cache embeddings for offline use
       if (isFaceRegistered) {
-        _cacheEmbeddingsFromServer();
+        await _cacheEmbeddingsFromServer();
       }
     } catch (_) {
       // If offline, check if we have cached embeddings
@@ -158,8 +171,9 @@ class AttendanceController extends ChangeNotifier {
     String type,
   ) async {
     try {
-      _loadTodayStatus();
-      final hasClockInToday = SessionManager.getTodayRecord(name, 'Masuk') != null;
+      await syncTodayStatusFromServer();
+      final hasClockInToday =
+          SessionManager.getTodayRecord(name, 'Masuk') != null;
       final hasClockOutToday =
           SessionManager.getTodayRecord(name, 'Pulang') != null;
       if (type == 'Masuk' && hasClockInToday) {
@@ -250,9 +264,16 @@ class AttendanceController extends ChangeNotifier {
         'location_name': locationName,
       };
 
-      // Try to send to server; if offline, queue it
+      // Try to send to server; if offline, queue it. Do not queue validation/duplicate errors.
       try {
         await ApiService.sendAttendance(attendanceData);
+      } on ApiException catch (e) {
+        if (e.statusCode < 500) {
+          await syncTodayStatusFromServer();
+          _setLoading(false);
+          return AttendanceResult(success: false, message: e.message);
+        }
+        await OfflineAttendanceQueue.enqueue(attendanceData);
       } catch (_) {
         await OfflineAttendanceQueue.enqueue(attendanceData);
       }
@@ -287,8 +308,7 @@ class AttendanceController extends ChangeNotifier {
       _setLoading(false);
       return const AttendanceResult(
         success: false,
-        message:
-            '⏱️ Lokasi tidak tersedia.\nPastikan GPS aktif dan coba lagi.',
+        message: '⏱️ Lokasi tidak tersedia.\nPastikan GPS aktif dan coba lagi.',
       );
     } on Exception catch (e) {
       _setLoading(false);
@@ -301,7 +321,6 @@ class AttendanceController extends ChangeNotifier {
   }
 
   // ── Register Face ──
-
 
   Future<AttendanceResult> registerFace(
     List<File> photos,

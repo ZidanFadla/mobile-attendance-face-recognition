@@ -44,6 +44,13 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'name' => trim((string) $request->input('name', '')),
+            'phone' => trim((string) $request->input('phone', '')),
+            'username' => strtolower(trim((string) $request->input('username', ''))),
+            'password' => trim((string) $request->input('password', '')),
+        ]);
+
         $request->validate([
             'name'     => 'required|string|max:255',
             'phone'    => 'required|string|max:20|unique:employees,phone',
@@ -53,11 +60,11 @@ class EmployeeController extends Controller
         ]);
 
         Employee::create([
-            'name'     => $request->name,
-            'phone'    => $request->phone,
+            'name'     => trim($request->name),
+            'phone'    => trim($request->phone),
             'jabatan'  => $request->jabatan,
-            'username' => strtolower($request->username),
-            'password' => Hash::make($request->password),
+            'username' => strtolower(trim($request->username)),
+            'password' => Hash::make(trim($request->password)),
             'tanggal_masuk' => now()->toDateString(),
         ]);
 
@@ -103,6 +110,13 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, Employee $employee)
     {
+        $request->merge([
+            'name' => trim((string) $request->input('name', '')),
+            'phone' => trim((string) $request->input('phone', '')),
+            'username' => strtolower(trim((string) $request->input('username', ''))),
+            'password' => $request->filled('password') ? trim((string) $request->input('password')) : null,
+        ]);
+
         $request->validate([
             'name'     => 'required|string|max:255',
             'phone'    => 'required|string|max:20|unique:employees,phone,' . $employee->id,
@@ -112,14 +126,15 @@ class EmployeeController extends Controller
         ]);
 
         $employee->update([
-            'name'     => $request->name,
-            'phone'    => $request->phone,
+            'name'     => trim($request->name),
+            'phone'    => trim($request->phone),
             'jabatan'  => $request->jabatan,
-            'username' => strtolower($request->username),
+            'username' => strtolower(trim($request->username)),
         ]);
 
         if ($request->filled('password')) {
-            $employee->update(['password' => Hash::make($request->password)]);
+            $employee->forceFill(['password' => Hash::make(trim($request->password))])->save();
+            $employee->tokens()->delete();
         }
 
         return redirect()->route('admin.employees.show', $employee)

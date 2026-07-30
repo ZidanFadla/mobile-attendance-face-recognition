@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    private const PER_PAGE = 25;
+
     public function index(Request $request)
     {
         $reportType = $request->input('report_type');
@@ -35,7 +37,7 @@ class ReportController extends Controller
                 'tahunan' => 'yearly',
                 default => 'daily',
             },
-            'employeesFilter' => Cache::store('file')->remember('admin_report_employee_filter_options', 60, fn () =>
+            'employeesFilter' => Cache::store('file')->remember('admin_report_employee_filter_options', 600, fn () =>
                 Employee::orderBy('name')->get(['id', 'name', 'jabatan'])
             ),
         ]));
@@ -49,19 +51,32 @@ class ReportController extends Controller
         $employeeId = $request->integer('employee_id') ?: null;
         $status = $request->input('status');
 
-        $attendances = Attendance::with('employee:id,name,jabatan')
+        $baseQuery = Attendance::query()
             ->whereBetween('timestamp', [$dayStart, $dayEnd])
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
-            ->when($status && $status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($status && $status !== 'all', fn ($q) => $q->where('status', $status));
+
+        $summary = (clone $baseQuery)
+            ->selectRaw(
+                'COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as total_masuk,
+                SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as total_telat,
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as total_lembur',
+                ['Masuk', 'Masuk', 'telat']
+            )
+            ->first();
+
+        $attendances = (clone $baseQuery)
+            ->with('employee:id,name,jabatan')
             ->orderBy('timestamp')
-            ->get();
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         return [
             'date' => $date,
             'attendances' => $attendances,
-            'totalMasuk' => $attendances->where('type', 'Masuk')->unique('employee_id')->count(),
-            'totalTerlat' => $attendances->where('type', 'Masuk')->where('status', 'telat')->count(),
-            'totalLembur' => $attendances->where('is_lembur', true)->count(),
+            'totalMasuk' => (int) ($summary->total_masuk ?? 0),
+            'totalTerlat' => (int) ($summary->total_telat ?? 0),
+            'totalLembur' => (int) ($summary->total_lembur ?? 0),
         ];
     }
 
@@ -72,6 +87,17 @@ class ReportController extends Controller
         $end = Carbon::parse($month)->endOfMonth();
         $employeeId = $request->integer('employee_id') ?: null;
 
+        $summary = Attendance::query()
+            ->whereBetween('timestamp', [$start, $end])
+            ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
+            ->selectRaw(
+                'COUNT(CASE WHEN type = ? THEN 1 END) as total_hadir,
+                SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as total_telat,
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as total_lembur',
+                ['Masuk', 'Masuk', 'telat']
+            )
+            ->first();
+
         $employees = Employee::query()
             ->when($employeeId, fn ($q) => $q->where('id', $employeeId))
             ->withCount([
@@ -80,14 +106,15 @@ class ReportController extends Controller
                 'attendances as lembur_count' => fn ($q) => $q->where('is_lembur', true)->whereBetween('timestamp', [$start, $end]),
             ])
             ->orderBy('name')
-            ->get();
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         return [
             'month' => $month,
             'employees' => $employees,
-            'totalHadir' => $employees->sum('hadir_count'),
-            'totalTerlat' => $employees->sum('telat_count'),
-            'totalLembur' => $employees->sum('lembur_count'),
+            'totalHadir' => (int) ($summary->total_hadir ?? 0),
+            'totalTerlat' => (int) ($summary->total_telat ?? 0),
+            'totalLembur' => (int) ($summary->total_lembur ?? 0),
         ];
     }
 
@@ -96,17 +123,18 @@ class ReportController extends Controller
         $year = (int) $request->input('year', now()->year);
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = $start->copy()->endOfYear();
+        $monthExpression = $this->monthExpression('timestamp');
 
         $statsByMonth = Attendance::query()
             ->whereBetween('timestamp', [$start, $end])
             ->selectRaw(
-                'EXTRACT(MONTH FROM "timestamp")::int as month_number,
+                "{$monthExpression} as month_number,
                 COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as hadir,
                 SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as telat,
-                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur',
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur",
                 ['Masuk', 'Masuk', 'telat']
             )
-            ->groupBy(DB::raw('EXTRACT(MONTH FROM "timestamp")'))
+            ->groupBy(DB::raw($monthExpression))
             ->get()
             ->keyBy('month_number');
 
@@ -134,18 +162,36 @@ class ReportController extends Controller
         $start = Carbon::parse($month)->startOfMonth();
         $end = Carbon::parse($month)->endOfMonth();
 
-        $lemburData = DB::table('attendances')
+        $baseQuery = DB::table('attendances')
             ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->select('employees.id', 'employees.name', 'employees.jabatan', DB::raw('COUNT(*) as total_hari_lembur'), DB::raw('SUM(lembur_fee) as total_fee'))
             ->where('attendances.is_lembur', true)
-            ->whereBetween('attendances.timestamp', [$start, $end])
+            ->whereBetween('attendances.timestamp', [$start, $end]);
+
+        $summary = (clone $baseQuery)
+            ->selectRaw('COUNT(*) as total_hari_lembur, SUM(lembur_fee) as total_fee')
+            ->first();
+
+        $lemburData = (clone $baseQuery)
+            ->select('employees.id', 'employees.name', 'employees.jabatan', DB::raw('COUNT(*) as total_hari_lembur'), DB::raw('SUM(lembur_fee) as total_fee'))
             ->groupBy('employees.id', 'employees.name', 'employees.jabatan')
             ->orderByDesc('total_hari_lembur')
-            ->get();
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
         return [
             'month' => $month,
             'lemburData' => $lemburData,
+            'totalHariLembur' => (int) ($summary->total_hari_lembur ?? 0),
+            'totalFeeLembur' => (int) ($summary->total_fee ?? 0),
         ];
+    }
+
+    private function monthExpression(string $column): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => "EXTRACT(MONTH FROM \"{$column}\")::int",
+            'sqlite' => "CAST(strftime('%m', {$column}) AS INTEGER)",
+            default => "MONTH({$column})",
+        };
     }
 }

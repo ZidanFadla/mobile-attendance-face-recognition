@@ -60,12 +60,6 @@ class _MainShellState extends State<MainShell> {
       if (needsRegistration && mounted) _showRegisterFaceDialog();
     });
 
-    // Muat riwayat absensi dari database backend
-    SessionManager.loadFromApi(_name).then((_) {
-      _controller.refreshTodayStatus();
-      if (mounted) setState(() {});
-    });
-
     // Sync offline attendance queue
     OfflineAttendanceQueue.syncAll();
 
@@ -83,6 +77,16 @@ class _MainShellState extends State<MainShell> {
   // ── Flows ──────────────────────────────────────────────────
 
   Future<void> _onClockIn() async {
+    final synced = await _controller.syncTodayStatusFromServer();
+    if (!mounted) return;
+    if (synced && _controller.isClockedIn) {
+      _showResultDialog(
+        'Kamu sudah absen masuk hari ini. Tombol sudah berubah ke Clock Out.',
+        false,
+      );
+      return;
+    }
+
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
@@ -103,6 +107,20 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> _onClockOut() async {
+    await _controller.syncTodayStatusFromServer();
+    if (!mounted) return;
+    if (!_controller.isClockedIn) {
+      _showResultDialog(
+        'Absen masuk terlebih dahulu sebelum absen pulang.',
+        false,
+      );
+      return;
+    }
+    if (_controller.clockOutTime != '--:--') {
+      _showResultDialog('Kamu sudah absen pulang hari ini.', false);
+      return;
+    }
+
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(

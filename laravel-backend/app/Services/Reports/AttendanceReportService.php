@@ -138,16 +138,18 @@ class AttendanceReportService
         $start = Carbon::create($year, 1, 1)->startOfYear();
         $end = $start->copy()->endOfYear();
 
+        $monthExpression = $this->monthExpression('timestamp');
+
         $statsByMonth = Attendance::query()
             ->whereBetween('timestamp', [$start, $end])
             ->selectRaw(
-                'EXTRACT(MONTH FROM "timestamp")::int as month_number,
+                "{$monthExpression} as month_number,
                 COUNT(DISTINCT CASE WHEN type = ? THEN employee_id END) as hadir,
                 SUM(CASE WHEN type = ? AND status = ? THEN 1 ELSE 0 END) as telat,
-                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur',
+                SUM(CASE WHEN is_lembur = true THEN 1 ELSE 0 END) as lembur",
                 ['Masuk', 'Masuk', 'telat']
             )
-            ->groupBy(DB::raw('EXTRACT(MONTH FROM "timestamp")'))
+            ->groupBy(DB::raw($monthExpression))
             ->get()
             ->keyBy('month_number');
 
@@ -305,6 +307,15 @@ class AttendanceReportService
         }
     }
 
+
+    private function monthExpression(string $column): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => "EXTRACT(MONTH FROM \"{$column}\")::int",
+            'sqlite' => "CAST(strftime('%m', {$column}) AS INTEGER)",
+            default => "MONTH({$column})",
+        };
+    }
     private function statusLabel(?string $status): string
     {
         return match ($status) {

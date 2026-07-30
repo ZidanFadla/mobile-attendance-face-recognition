@@ -36,6 +36,7 @@ class ReportExportController extends Controller
     {
         $report = $this->reports->build($request);
         $this->ensureHasData($report);
+        $this->ensurePdfSizeIsSafe($report);
 
         $orientation = $report['type'] === 'daily' ? 'landscape' : 'portrait';
         $pdfView = 'reports.pdf.' . $report['type'];
@@ -43,6 +44,16 @@ class ReportExportController extends Controller
             ->setPaper('a4', $orientation);
 
         return $pdf->download($this->reports->filename($report['type'], 'pdf', $report));
+    }
+
+    private function ensurePdfSizeIsSafe(array $report): void
+    {
+        $maxRows = (int) config('reports.pdf_max_rows', 500);
+        if ($report['rows']->count() > $maxRows) {
+            throw ValidationException::withMessages([
+                'report' => "PDF dibatasi maksimal {$maxRows} baris agar server tidak timeout. Gunakan filter yang lebih spesifik atau export Excel untuk data besar.",
+            ]);
+        }
     }
 
     private function ensureHasData(array $report): void
