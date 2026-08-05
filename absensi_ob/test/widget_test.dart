@@ -1,13 +1,13 @@
+import 'package:absensi_ob/pages/login_page.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:absensi_ob/main.dart';
 
 void main() {
   testWidgets('Login page renders required controls', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
-    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpWidget(const MaterialApp(home: LoginPage()));
+    await tester.pumpAndSettle();
 
     expect(find.text('Selamat Datang'), findsOneWidget);
     expect(find.text('Username'), findsOneWidget);
