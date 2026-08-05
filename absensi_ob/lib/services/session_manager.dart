@@ -2,25 +2,24 @@ import '../models/attendance_record.dart';
 import 'api_service.dart';
 
 class SessionManager {
-  static final Map<String, List<AttendanceRecord>> _attendanceData = {};
+  static List<AttendanceRecord> _attendanceData = [];
 
-  /// Ambil riwayat berdasarkan nama
+  /// Ambil riwayat absensi user yang sedang login.
   static List<AttendanceRecord> getRecords(String name) {
-    return _attendanceData[name] ?? [];
+    return List.unmodifiable(_attendanceData);
   }
 
-  /// Tambah record baru
+  /// Tambah record baru untuk sesi user yang sedang login.
   static void addRecord(String name, AttendanceRecord record) {
-    _attendanceData.putIfAbsent(name, () => []).add(record);
+    _attendanceData.add(record);
   }
 
   /// Ambil record hari ini berdasarkan tipe.
   static AttendanceRecord? getTodayRecord(String name, String type) {
-    final records = _attendanceData[name] ?? [];
     final now = DateTime.now();
     final normalizedType = _normalizeAttendanceType(type);
 
-    for (final record in records) {
+    for (final record in _attendanceData) {
       if (_normalizeAttendanceType(record.type) == normalizedType &&
           record.timestamp.year == now.year &&
           record.timestamp.month == now.month &&
@@ -32,7 +31,6 @@ class SessionManager {
   }
 
   /// Muat riwayat absensi dari database API lalu simpan ke memori lokal.
-  /// Dipanggil sekali saat login / MainShell dimuat.
   static Future<bool> loadFromApi(String name) async {
     try {
       final list = await ApiService.fetchAttendanceHistory();
@@ -53,17 +51,16 @@ class SessionManager {
         );
       }
 
-      _attendanceData[name] = records;
+      _attendanceData = records;
       return true;
     } catch (_) {
-      // Jika gagal fetch, biarkan data tetap kosong / data sesi sebelumnya
       return false;
     }
   }
 
-  /// Bersihkan data saat logout
+  /// Bersihkan data saat logout / login user baru.
   static void clear() {
-    _attendanceData.clear();
+    _attendanceData = [];
   }
 
   static String _normalizeAttendanceType(String type) {

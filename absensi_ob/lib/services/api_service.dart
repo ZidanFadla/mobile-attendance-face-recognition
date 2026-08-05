@@ -1,20 +1,21 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
 import 'push_notification_service.dart';
 
 /// ApiService bertanggung jawab penuh atas semua komunikasi HTTP ke Laravel.
-/// Tidak ada logic bisnis di sini — hanya kirim & terima data.
+/// Tidak ada logic bisnis di sini, hanya kirim dan terima data.
 class ApiService {
   ApiService._(); // prevent instantiation
 
   static final _baseUrl = AppConstants.baseUrl;
   static final _timeout = AppConstants.requestTimeout;
 
-  // ✅ Wajib ada Accept: application/json agar Laravel selalu return JSON,
+  // Wajib ada Accept: application/json agar Laravel selalu return JSON,
   // bukan HTML error page (yang menyebabkan FormatException)
   static const Map<String, String> _baseHeaders = {
     'Content-Type': 'application/json',
@@ -34,20 +35,29 @@ class ApiService {
     return {..._baseHeaders, 'Authorization': 'Bearer $token'};
   }
 
-  // ─── Auth ───────────────────────────────────────────────────
+  // --- Auth ---------------------------------------------------
 
   static Future<Map<String, dynamic>> login({
     required String username,
     required String password,
   }) async {
+    final uri = Uri.parse('$_baseUrl/auth/login');
+    if (kDebugMode) debugPrint('Login request: $uri');
+
     final response = await http
         .post(
-          Uri.parse('$_baseUrl/auth/login'),
+          uri,
           headers: await _headers(),
-          body: jsonEncode({'username': username, 'password': password}),
+          body: jsonEncode({
+            'username': username.trim().toLowerCase(),
+            'password': password,
+          }),
         )
-        .timeout(_timeout);
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+        .timeout(const Duration(seconds: 12));
+
+    if (kDebugMode) debugPrint('Login response: ${response.statusCode}');
+
+    final data = _decodeJsonResponse(response);
     final token = data['token'];
     if (data['success'] == true && token is String) {
       await TokenStorage.saveToken(token);
@@ -74,7 +84,7 @@ class ApiService {
           }),
         )
         .timeout(_timeout);
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = _decodeJsonResponse(response);
     final token = data['token'];
     if (data['success'] == true && token is String) {
       await TokenStorage.saveToken(token);
@@ -83,7 +93,18 @@ class ApiService {
     return data;
   }
 
-  // ─── Face ────────────────────────────────────────────────────
+  static Future<Map<String, dynamic>> fetchCurrentEmployee() async {
+    final response = await _sendWithRetry(
+      () async => http
+          .get(
+            Uri.parse('$_baseUrl/user'),
+            headers: await _headers(authenticated: true),
+          )
+          .timeout(_timeout),
+    );
+    return _decodeJsonResponse(response);
+  }
+  // --- Face ----------------------------------------------------
 
   static Future<Map<String, dynamic>> updateProfile({
     required String name,
@@ -96,7 +117,7 @@ class ApiService {
           body: jsonEncode({'name': name, 'phone': phone}),
         )
         .timeout(_timeout);
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    return _decodeJsonResponse(response);
   }
 
   static Future<Map<String, dynamic>> uploadProfilePhoto(File photo) async {
@@ -115,7 +136,7 @@ class ApiService {
 
     final streamedResponse = await request.send().timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    return _decodeJsonResponse(response);
   }
 
   static Future<Map<String, dynamic>> changePassword({
@@ -134,21 +155,23 @@ class ApiService {
           }),
         )
         .timeout(_timeout);
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    return _decodeJsonResponse(response);
   }
 
   static Future<bool> checkFaceRegistration() async {
-    final response = await http
-        .get(
-          Uri.parse('$_baseUrl/face/check'),
-          headers: await _headers(authenticated: true),
-        )
-        .timeout(_timeout);
-    final data = jsonDecode(response.body);
+    final response = await _sendWithRetry(
+      () async => http
+          .get(
+            Uri.parse('$_baseUrl/face/check'),
+            headers: await _headers(authenticated: true),
+          )
+          .timeout(_timeout),
+    );
+    final data = _decodeJsonResponse(response);
     return data['registered'] == true;
   }
 
-  // ─── Attendance ──────────────────────────────────────────────
+  // --- Attendance ----------------------------------------------
 
   static Future<void> sendAttendance(Map<String, dynamic> data) async {
     final response = await http
@@ -160,29 +183,35 @@ class ApiService {
         .timeout(_timeout);
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw ApiException(
-        response.statusCode,
-        'Gagal menyimpan data absensi: ${response.body}',
-      );
+      var message = 'Gagal menyimpan data absensi.';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        message = data['message']?.toString() ?? message;
+      } catch (_) {
+        if (response.body.isNotEmpty) message = response.body;
+      }
+      throw ApiException(response.statusCode, message);
     }
   }
 
   static Future<List<Map<String, dynamic>>> fetchAttendanceHistory() async {
-    final response = await http
-        .get(
-          Uri.parse('$_baseUrl/attendance'),
-          headers: await _headers(authenticated: true),
-        )
-        .timeout(_timeout);
+    final response = await _sendWithRetry(
+      () async => http
+          .get(
+            Uri.parse('$_baseUrl/attendance'),
+            headers: await _headers(authenticated: true),
+          )
+          .timeout(_timeout),
+    );
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = _decodeJsonResponse(response);
     if (data['success'] == true && data['data'] is List) {
       return List<Map<String, dynamic>>.from(data['data']);
     }
     return [];
   }
 
-  // ─── Requests ───────────────────────────────────────────────────────────
+  // --- Requests -----------------------------------------------------------
 
   static Future<Map<String, dynamic>> submitLeaveRequest({
     required String leaveType,
@@ -322,6 +351,18 @@ class ApiService {
   ) async {
     final streamed = await request.send().timeout(_timeout);
     return http.Response.fromStream(streamed);
+  }
+
+  static Future<http.Response> _sendWithRetry(
+    Future<http.Response> Function() request,
+  ) async {
+    try {
+      return await request();
+    } on TimeoutException {
+      return request();
+    } on SocketException {
+      return request();
+    }
   }
 
   static Map<String, dynamic> _decodeJsonResponse(http.Response response) {

@@ -9,6 +9,7 @@ import '../core/app_theme.dart';
 import '../services/session_manager.dart';
 import '../services/token_storage.dart';
 import '../services/push_notification_service.dart';
+import '../services/face_recognition_service.dart';
 
 /// More tab — stateless display. Data flows from [MainShell].
 class MorePage extends StatelessWidget {
@@ -159,6 +160,7 @@ class MorePage extends StatelessWidget {
             onTap: () async {
               await PushNotificationService.unregisterToken();
               await TokenStorage.clearToken();
+              await FaceRecognitionService.clearCache();
               SessionManager.clear();
               if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(

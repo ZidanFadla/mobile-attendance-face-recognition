@@ -6,7 +6,6 @@ import '../core/app_theme.dart';
 import '../services/face_recognition_service.dart';
 import '../services/session_manager.dart';
 import '../services/message_service.dart';
-import '../services/offline_attendance_queue.dart';
 import '../widgets/design_system/soft_components.dart';
 import 'face_scan_simple_page.dart';
 import 'home_page.dart';
@@ -32,7 +31,7 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
   late String _name;
   late String _phone;
@@ -42,6 +41,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _name = widget.name;
     _phone = widget.phoneNumber;
     _photoUrl = widget.profilePhotoUrl;
@@ -60,18 +60,28 @@ class _MainShellState extends State<MainShell> {
       if (needsRegistration && mounted) _showRegisterFaceDialog();
     });
 
-    // Sync offline attendance queue
-    OfflineAttendanceQueue.syncAll();
-
     // Start polling admin messages immediately on app startup
     MessageService.startPolling(onMessages: (_) {}, onUnreadCount: (_) {});
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     MessageService.stopPolling();
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshAttendanceState();
+    }
+  }
+
+  Future<void> _refreshAttendanceState() async {
+    await _controller.syncTodayStatusFromServer();
+    if (mounted) setState(() {});
   }
 
   // ── Flows ──────────────────────────────────────────────────
@@ -337,6 +347,7 @@ class _MainShellState extends State<MainShell> {
       ),
     );
   }
+
   // ── Build ──────────────────────────────────────────────────
 
   @override
@@ -409,7 +420,10 @@ class _MainShellState extends State<MainShell> {
 
         return SoftNavigationBar(
           currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
+          onTap: (index) {
+            setState(() => _currentIndex = index);
+            if (index == 1) _refreshAttendanceState();
+          },
           items: [
             const SoftNavigationItem(icon: Icons.home_rounded, label: 'Home'),
             const SoftNavigationItem(

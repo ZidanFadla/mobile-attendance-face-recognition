@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'main_shell.dart';
 import '../services/api_service.dart';
+import '../services/face_recognition_service.dart';
+import '../services/session_manager.dart';
 import '../core/app_theme.dart';
 import '../widgets/app_form_field.dart';
 import '../widgets/app_snackbar.dart';
@@ -60,23 +62,25 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_isLoading || !_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {
       final data = await ApiService.login(
-        username: _usernameController.text.trim(),
+        username: _usernameController.text,
         password: _passwordController.text,
       );
 
       if (!mounted) return;
-      setState(() => _isLoading = false);
-
       if (data['success'] == true) {
         final employee = data['employee'];
         if (employee != null &&
+            employee['id'] != null &&
             employee['name'] != null &&
             employee['phone'] != null) {
+          SessionManager.clear();
+          FaceRecognitionService.setCacheOwner(employee['id'].toString());
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -87,21 +91,26 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           );
-        } else {
-          showErrorSnackbar(context, 'Data karyawan tidak lengkap');
+          return;
         }
+        showErrorSnackbar(context, 'Data karyawan tidak lengkap');
       } else {
         showErrorSnackbar(context, data['message'] ?? 'Login gagal');
       }
     } on TimeoutException {
-      setState(() => _isLoading = false);
+      if (!mounted) return;
       showErrorSnackbar(
         context,
-        'Server tidak merespons. Pastikan server berjalan.',
+        'Server tidak merespons. Cek koneksi internet atau alamat server.',
       );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      showErrorSnackbar(context, e.message);
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (!mounted) return;
       showErrorSnackbar(context, 'Gagal terhubung ke server: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
