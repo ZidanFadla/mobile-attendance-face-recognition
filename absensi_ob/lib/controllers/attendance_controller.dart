@@ -9,7 +9,6 @@ import '../services/api_service.dart';
 import '../services/face_api_service.dart';
 import '../services/face_recognition_service.dart';
 import '../services/location_service.dart';
-import '../services/offline_attendance_queue.dart';
 import '../services/session_manager.dart';
 
 /// Result returned from attendance operations.
@@ -66,9 +65,6 @@ class AttendanceController extends ChangeNotifier {
 
     await syncTodayStatusFromServer();
 
-    // Sync offline queue if any
-    _trySyncOfflineQueue();
-
     return await _fetchFaceRegistrationStatus();
   }
 
@@ -117,12 +113,12 @@ class AttendanceController extends ChangeNotifier {
     try {
       isFaceRegistered = await ApiService.checkFaceRegistration();
 
-      // If registered, fetch & cache embeddings for offline use
+      // If registered, fetch & cache embeddings for on-device matching
       if (isFaceRegistered) {
         await _cacheEmbeddingsFromServer();
       }
     } catch (_) {
-      // If offline, check if we have cached embeddings
+      // If the server cannot be reached, check if we have cached embeddings
       final cached = await FaceRecognitionService.getCachedEmbeddings();
       isFaceRegistered = cached != null && cached.isNotEmpty;
     } finally {
@@ -141,18 +137,6 @@ class AttendanceController extends ChangeNotifier {
       }
     } catch (_) {
       // Ignore — cached embeddings remain from last successful fetch
-    }
-  }
-
-  /// Try to sync any offline attendance records.
-  Future<void> _trySyncOfflineQueue() async {
-    try {
-      final synced = await OfflineAttendanceQueue.syncAll();
-      if (synced > 0 && kDebugMode) {
-        debugPrint('📡 Synced $synced offline attendance records');
-      }
-    } catch (_) {
-      // Will retry next time
     }
   }
 
@@ -204,8 +188,12 @@ class AttendanceController extends ChangeNotifier {
       if (kDebugMode && AppConstants.devAttendanceBypass) {
         // Skip face verification in dev mode
       } else {
-        final storedEmbeddings =
+        var storedEmbeddings =
             await FaceRecognitionService.getCachedEmbeddings();
+        if (storedEmbeddings == null || storedEmbeddings.isEmpty) {
+          await _cacheEmbeddingsFromServer();
+          storedEmbeddings = await FaceRecognitionService.getCachedEmbeddings();
+        }
         if (storedEmbeddings == null || storedEmbeddings.isEmpty) {
           _setLoading(false);
           return const AttendanceResult(
@@ -237,9 +225,7 @@ class AttendanceController extends ChangeNotifier {
         position.latitude,
         position.longitude,
       );
-      final place = placemarks[0];
-      final locationName =
-          '${place.street}, ${place.subLocality}, ${place.locality}';
+      final locationName = _formatAddress(placemarks.first);
 
       // 3. Save attendance
       _setLoading(true, '💾 Menyimpan data absensi...');
@@ -264,18 +250,20 @@ class AttendanceController extends ChangeNotifier {
         'location_name': locationName,
       };
 
-      // Try to send to server; if offline, queue it. Do not queue validation/duplicate errors.
+      // Send directly to server. Attendance is not accepted when the request fails.
       try {
         await ApiService.sendAttendance(attendanceData);
       } on ApiException catch (e) {
-        if (e.statusCode < 500) {
-          await syncTodayStatusFromServer();
-          _setLoading(false);
-          return AttendanceResult(success: false, message: e.message);
-        }
-        await OfflineAttendanceQueue.enqueue(attendanceData);
+        await syncTodayStatusFromServer();
+        _setLoading(false);
+        return AttendanceResult(success: false, message: e.message);
       } catch (_) {
-        await OfflineAttendanceQueue.enqueue(attendanceData);
+        _setLoading(false);
+        return const AttendanceResult(
+          success: false,
+          message:
+              'Gagal menyimpan data absensi.\nPastikan koneksi internet tersedia lalu coba lagi.',
+        );
       }
 
       SessionManager.addRecord(name, record);
@@ -320,7 +308,50 @@ class AttendanceController extends ChangeNotifier {
     }
   }
 
-  // ── Register Face ──
+  String _formatAddress(Placemark place) {
+    final parts = <String?>[
+      place.street,
+      place.subLocality,
+      place.locality,
+      place.subAdministrativeArea,
+      place.administrativeArea,
+      place.postalCode,
+      place.country,
+    ];
+
+    final cleanParts = <String>[];
+    for (final raw in parts) {
+      final value = _cleanAddressPart(raw);
+      if (value == null) continue;
+      final alreadyAdded = cleanParts.any(
+        (part) => part.toLowerCase() == value.toLowerCase(),
+      );
+      if (!alreadyAdded) cleanParts.add(value);
+    }
+
+    return cleanParts.isEmpty ? 'Alamat tidak tersedia' : cleanParts.join(', ');
+  }
+
+  String? _cleanAddressPart(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+
+    final withoutPlusCode = trimmed
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty && !_isPlusCode(part))
+        .join(', ');
+
+    return withoutPlusCode.isEmpty ? null : withoutPlusCode;
+  }
+
+  bool _isPlusCode(String value) {
+    return RegExp(
+      r'^[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3}$',
+    ).hasMatch(value.toUpperCase());
+  }
+
+  // Register Face
 
   Future<AttendanceResult> registerFace(
     List<File> photos,
@@ -353,7 +384,7 @@ class AttendanceController extends ChangeNotifier {
       final regResult = await FaceApiService.registerEmbeddings(embeddings);
 
       if (regResult.success) {
-        // Cache embeddings locally for offline matching
+        // Cache embeddings locally for on-device matching
         await FaceRecognitionService.cacheEmbeddings(embeddings);
         isFaceRegistered = true;
         notifyListeners();
