@@ -28,7 +28,7 @@ class AppConstants {
   static const String faceModelPath = 'assets/mobilefacenet.tflite';
   static const int faceInputSize = 112;
   static const int faceEmbeddingSize = 192;
-  static const double faceMatchThreshold = 0.72; // Strict L2 Euclidean distance
-  static const double faceMatchThresholdRelaxed = 0.82;
-  static const double faceRegistrationConsistencyThreshold = 0.90;
+  static const double faceMatchThreshold = 0.80; // L2 Euclidean distance
+  static const double faceMatchThresholdRelaxed = 0.90;
+  static const double faceRegistrationConsistencyThreshold = 1.05;
 }

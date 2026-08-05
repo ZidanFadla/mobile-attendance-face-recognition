@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import 'token_storage.dart';
@@ -59,14 +61,16 @@ class FaceApiService {
     return FaceResponse.fromJson(jsonDecode(response.body));
   }
 
-  /// Fetch stored embeddings from the server (for local cache / offline use).
+  /// Fetch stored embeddings from the server (for local cache / local use).
   static Future<List<List<double>>?> fetchStoredEmbeddings() async {
-    final response = await http
-        .get(
-          Uri.parse('${AppConstants.baseUrl}/face/embeddings'),
-          headers: await _authHeaders(),
-        )
-        .timeout(AppConstants.requestTimeout);
+    final response = await _sendWithRetry(
+      () async => http
+          .get(
+            Uri.parse('${AppConstants.baseUrl}/face/embeddings'),
+            headers: await _authHeaders(),
+          )
+          .timeout(AppConstants.requestTimeout),
+    );
 
     if (response.statusCode != 200) return null;
 
@@ -76,8 +80,11 @@ class FaceApiService {
       if (raw == null) return null;
 
       final embeddings = (raw as List)
-          .map((e) => List<double>.from(
-              (e as List).map((v) => (v as num).toDouble())))
+          .map(
+            (e) => List<double>.from(
+              (e as List).map((v) => (v as num).toDouble()),
+            ),
+          )
           .toList();
       return embeddings.isNotEmpty ? embeddings : null;
     } catch (_) {
@@ -98,6 +105,18 @@ class FaceApiService {
 
     final data = jsonDecode(response.body);
     return data['registered'] ?? false;
+  }
+
+  static Future<http.Response> _sendWithRetry(
+    Future<http.Response> Function() request,
+  ) async {
+    try {
+      return await request();
+    } on TimeoutException {
+      return request();
+    } on SocketException {
+      return request();
+    }
   }
 }
 

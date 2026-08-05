@@ -35,7 +35,7 @@ class FaceRecognitionController extends Controller
 
     /**
      * Get stored embeddings — Flutter mengambil embeddings untuk di-cache di HP.
-     * Digunakan untuk offline face matching.
+     * Digunakan untuk on-device face matching.
      */
     public function getEmbeddings(Request $request)
     {

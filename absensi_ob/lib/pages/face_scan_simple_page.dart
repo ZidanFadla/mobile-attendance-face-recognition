@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +39,13 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
   bool _isRecording = false;
   bool _isDetecting = false;
   bool _livenessPassed = false;
+  bool _blinkPassed = false;
   bool _eyesWereOpen = false;
   bool _eyesWereClosed = false;
+  late final List<bool> _turnChallenges;
+  int _turnStep = 0;
+  double? _neutralYaw;
+  DateTime? _turnPromptedAt;
   DateTime _lastProcessedAt = DateTime.fromMillisecondsSinceEpoch(0);
   String _livenessStatus = 'Posisikan satu wajah di dalam oval';
 
@@ -57,6 +63,8 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final firstTurnLeft = Random().nextBool();
+    _turnChallenges = [firstTurnLeft, !firstTurnLeft];
     if (widget.requireLiveness) {
       _faceDetector = FaceDetector(
         options: FaceDetectorOptions(
@@ -97,7 +105,8 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) return;
 
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       _idleTimer?.cancel();
       if (controller.value.isStreamingImages) {
         try {
@@ -212,10 +221,7 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
         }
 
         if (mounted) {
-          Navigator.pop(context, {
-            'path': photo.path,
-            'embedding': embedding,
-          });
+          Navigator.pop(context, {'path': photo.path, 'embedding': embedding});
         }
       }
     } catch (e) {
@@ -271,8 +277,28 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
         return;
       }
 
-      if (_checkBlink(face)) {
+      if (!_blinkPassed) {
+        if (_checkBlink(face)) {
+          setState(() {
+            _blinkPassed = true;
+            _livenessStatus = 'Kedipan terdeteksi. Hadapkan wajah lurus.';
+          });
+        } else if (mounted) {
+          setState(() => _livenessStatus = _challengeInstruction);
+        }
+        return;
+      }
+
+      final turnResult = _checkTurnChallenge(face, now);
+      if (turnResult == _TurnChallengeResult.completed) {
         await _completeLiveness();
+      } else if (turnResult == _TurnChallengeResult.stepCompleted) {
+        setState(() {
+          _turnStep++;
+          _neutralYaw = null;
+          _turnPromptedAt = null;
+          _livenessStatus = 'Bagus. Hadapkan wajah lurus lagi.';
+        });
       } else if (mounted) {
         setState(() => _livenessStatus = _challengeInstruction);
       }
@@ -299,6 +325,41 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
       _eyesWereClosed = true;
     }
     return false;
+  }
+
+  _TurnChallengeResult _checkTurnChallenge(Face face, DateTime now) {
+    final yaw = face.headEulerAngleY;
+    if (yaw == null) return _TurnChallengeResult.waiting;
+
+    const neutralLimit = 7.0;
+    const turnThreshold = 16.0;
+    const minimumReactionDelay = Duration(milliseconds: 600);
+
+    if (_neutralYaw == null) {
+      if (yaw.abs() > neutralLimit) {
+        return _TurnChallengeResult.waiting;
+      }
+      _neutralYaw = yaw;
+      _turnPromptedAt = now;
+      return _TurnChallengeResult.waiting;
+    }
+
+    final promptedAt = _turnPromptedAt;
+    if (promptedAt == null ||
+        now.difference(promptedAt) < minimumReactionDelay) {
+      return _TurnChallengeResult.waiting;
+    }
+
+    final delta = yaw - _neutralYaw!;
+    final shouldTurnLeft = _turnChallenges[_turnStep];
+    final passed = shouldTurnLeft
+        ? delta <= -turnThreshold
+        : delta >= turnThreshold;
+
+    if (!passed) return _TurnChallengeResult.waiting;
+    return _turnStep >= _turnChallenges.length - 1
+        ? _TurnChallengeResult.completed
+        : _TurnChallengeResult.stepCompleted;
   }
 
   bool _isFaceBoxValid(Rect box, Size imageSize) {
@@ -398,7 +459,13 @@ class _FaceScanSimplePageState extends State<FaceScanSimplePage>
     );
   }
 
-  String get _challengeInstruction => 'Kedipkan kedua mata satu kali';
+  String get _challengeInstruction {
+    if (!_blinkPassed) return 'Kedipkan kedua mata satu kali';
+    if (_neutralYaw == null) return 'Hadapkan wajah lurus ke kamera';
+    return _turnChallenges[_turnStep]
+        ? 'Tengok sedikit ke kiri'
+        : 'Tengok sedikit ke kanan';
+  }
 
   @override
   void dispose() {
@@ -687,3 +754,5 @@ class _FaceGuidePainter extends CustomPainter {
   @override
   bool shouldRepaint(_) => false;
 }
+
+enum _TurnChallengeResult { waiting, stepCompleted, completed }

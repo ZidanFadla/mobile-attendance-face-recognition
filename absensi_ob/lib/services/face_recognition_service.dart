@@ -16,13 +16,14 @@ import '../core/app_constants.dart';
 /// - Preprocess face images (crop, resize 112×112, normalize)
 /// - Extract 192-dim embedding vectors
 /// - Compare embeddings via Euclidean distance
-/// - Cache stored embeddings locally for offline matching
+/// - Cache stored embeddings locally for on-device matching
 class FaceRecognitionService {
   FaceRecognitionService._();
 
   static Interpreter? _interpreter;
   static const _storage = FlutterSecureStorage();
-  static const _embeddingKey = 'face_embeddings_cache_v2';
+  static const _embeddingKeyPrefix = 'face_embeddings_cache_v2';
+  static String? _cacheOwnerId;
 
   // ── Initialization ──────────────────────────────────────────
 
@@ -30,9 +31,7 @@ class FaceRecognitionService {
   static Future<void> init() async {
     if (_interpreter != null) return;
     try {
-      _interpreter = await Interpreter.fromAsset(
-        AppConstants.faceModelPath,
-      );
+      _interpreter = await Interpreter.fromAsset(AppConstants.faceModelPath);
     } catch (e) {
       throw Exception('Gagal memuat model face recognition: $e');
     }
@@ -72,8 +71,10 @@ class FaceRecognitionService {
   static List<double> _runInferenceFromByteData(ByteData byteData) {
     final input = _byteDataToInputTensor(byteData);
 
-    final output = List.filled(AppConstants.faceEmbeddingSize, 0.0)
-        .reshape([1, AppConstants.faceEmbeddingSize]);
+    final output = List.filled(
+      AppConstants.faceEmbeddingSize,
+      0.0,
+    ).reshape([1, AppConstants.faceEmbeddingSize]);
 
     _interpreter!.run(input, output);
 
@@ -108,21 +109,22 @@ class FaceRecognitionService {
       );
     }
 
-    final distances = validStored
-        .map((stored) => _euclideanDistance(currentEmbedding, stored))
-        .toList()
-      ..sort();
+    final distances =
+        validStored
+            .map((stored) => _euclideanDistance(currentEmbedding, stored))
+            .toList()
+          ..sort();
     final bestDistance = distances.first;
     final topCount = distances.length >= 2 ? 2 : 1;
     final topAverage =
         distances.take(topCount).reduce((a, b) => a + b) / topCount;
 
-    final match = distances.length == 1
-        ? bestDistance <= AppConstants.faceMatchThreshold
-        : bestDistance <= AppConstants.faceMatchThreshold &&
-            topAverage <= AppConstants.faceMatchThresholdRelaxed;
+    final match = bestDistance <= AppConstants.faceMatchThreshold &&
+        topAverage <= AppConstants.faceMatchThresholdRelaxed;
     final confidence =
-        ((1.0 - (topAverage / (AppConstants.faceMatchThresholdRelaxed * 1.6))) *
+        ((1.0 -
+                    (topAverage /
+                        (AppConstants.faceMatchThresholdRelaxed * 1.35))) *
                 100)
             .clamp(0.0, 100.0);
 
@@ -149,9 +151,19 @@ class FaceRecognitionService {
     return valid.length == embeddings.length;
   }
 
-  // ── Embedding Cache (Offline Support) ────────────────────────
+  // ── Embedding Cache (Local Cache) ────────────────────────
 
-  /// Persist embeddings locally for offline face matching.
+  /// Scope cached embeddings to the logged-in employee.
+  static void setCacheOwner(String ownerId) {
+    final normalized = ownerId.trim();
+    _cacheOwnerId = normalized.isEmpty ? null : normalized;
+  }
+
+  static String get _embeddingKey => _cacheOwnerId == null
+      ? _embeddingKeyPrefix
+      : '$_embeddingKeyPrefix:$_cacheOwnerId';
+
+  /// Persist embeddings locally for on-device face matching.
   static Future<void> cacheEmbeddings(List<List<double>> embeddings) async {
     await _storage.write(key: _embeddingKey, value: jsonEncode(embeddings));
   }
@@ -164,8 +176,11 @@ class FaceRecognitionService {
     try {
       final decoded = jsonDecode(raw) as List;
       return decoded
-          .map((e) =>
-              List<double>.from((e as List).map((v) => (v as num).toDouble())))
+          .map(
+            (e) => List<double>.from(
+              (e as List).map((v) => (v as num).toDouble()),
+            ),
+          )
           .toList();
     } catch (_) {
       return null;
