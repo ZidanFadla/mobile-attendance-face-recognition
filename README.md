@@ -15,7 +15,6 @@
 - 🔐 **Face recognition on-device** — MobileFaceNet TFLite, tidak perlu server AI terpisah
 - 👁️ **Liveness detection** — Eye-blink challenge via Google ML Kit
 - 📍 **GPS geolocation** — Mencatat koordinat & alamat saat absen
-- 📴 **Offline support** — Absensi tetap berfungsi tanpa internet, sync otomatis saat online
 - 🖥️ **Admin panel** — Dashboard, manajemen karyawan, rekap laporan, pesan broadcast
 - 📊 **Export laporan** — Excel & PDF
 
@@ -71,13 +70,13 @@ Seluruh proses face recognition berjalan **di perangkat pengguna**, tanpa server
 | Liveness | ML Kit Classification | Eye-blink challenge (open → close → open) |
 | Embedding | MobileFaceNet TFLite | 192-dimensional face vector, input 112×112 RGB |
 | Matching | Euclidean Distance | Threshold: 0.72 (strict), 0.82 (relaxed) |
-| Caching | Secure Storage | Embeddings di-cache untuk offline matching |
+| Caching | Secure Storage | Embeddings di-cache untuk on-device matching |
 
 **Alur registrasi:**
 1. User foto 3x (depan, kiri, kanan) → ML Kit validasi wajah tunggal
 2. MobileFaceNet extract embedding per foto → cek konsistensi antar embedding
 3. Embeddings dikirim ke Laravel → disimpan di database
-4. Embeddings di-cache di device untuk offline use
+4. Embeddings di-cache di device untuk verifikasi lokal
 
 **Alur verifikasi (absen):**
 1. Liveness check (kedipkan mata) → capture foto
@@ -98,7 +97,6 @@ Seluruh proses face recognition berjalan **di perangkat pengguna**, tanpa server
 | Liveness Detection | Anti-spoofing via eye-blink detection |
 | Clock In / Out | Absen masuk & pulang dengan foto + lokasi |
 | GPS Location | Auto-detect koordinat & reverse geocoding alamat |
-| Offline Mode | Queue absensi saat offline, auto-sync saat online |
 | Attendance History | Riwayat absensi dengan kalender |
 | Leave Requests | Pengajuan cuti dengan attachment |
 | Cash Advance | Pengajuan kasbon |
@@ -291,7 +289,7 @@ flutter run --dart-define=API_BASE_URL=http://YOUR_SERVER_IP:8000/api
 - **Token Storage**: Flutter Secure Storage (encrypted)
 - **Face Data**: Embeddings only (no raw photos stored on server)
 - **Liveness**: Eye-blink anti-spoofing prevents photo/video attacks
-- **Offline Cache**: Face embeddings cached in device secure storage
+- **Local Embedding Cache**: Face embeddings cached in device secure storage
 
 ---
 
